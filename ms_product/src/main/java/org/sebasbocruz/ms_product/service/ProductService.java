@@ -23,5 +23,9 @@ public class ProductService {
         return productRepository.findProductByCategory_NameIgnoreCase(category);
     }
 
+    public List<Product> getProductsByBrand(String brand){
+        return productRepository.findProductByBrand_NameIgnoreCase(brand);
+    }
+
 
 }
