@@ -1,5 +1,6 @@
 package org.sebasbocruz.ms_product.controller;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.sebasbocruz.ms_product.dto.ProductDTO;
 import org.sebasbocruz.ms_product.mappers.ProductMapper;
@@ -37,11 +38,7 @@ public class ProductController {
 
         if (products == null || products.isEmpty()) {
             log.info("There weren't found products");
-            return ResponseEntity
-                    .noContent()
-                    .header("X-Total-Count", "0")
-                    .header("Cache-Control", "no-cache")
-                    .build();
+            throw new EntityNotFoundException("There weren't products found");
         }
 
         List<ProductDTO> productDTOs = productMapper.mapFromEntityToDTO(products);
@@ -67,12 +64,7 @@ public class ProductController {
 
         if (products == null || products.isEmpty()) {
             log.info("No products found for category: {}", normalizedCategory);
-            return ResponseEntity
-                    .notFound()
-                    .header("X-Total-Count", "0")
-                    .header("X-Category", normalizedCategory)
-                    .header("Cache-Control", "public, max-age=600")
-                    .build();
+            throw new EntityNotFoundException("No products found for category");
         }
 
         List<ProductDTO> productDTOs = productMapper.mapFromEntityToDTO(products);
@@ -100,12 +92,7 @@ public class ProductController {
 
         if (products == null || products.isEmpty()) {
             log.info("No products found for brand: {}", normalizedBrand);
-            return ResponseEntity
-                    .notFound()
-                    .header("X-Total-Count", "0")
-                    .header("X-Brand", normalizedBrand)
-                    .header("Cache-Control", "public, max-age=600")
-                    .build();
+            throw new EntityNotFoundException("No products found for brand");
         }
 
         List<ProductDTO> productDTOs = productMapper.mapFromEntityToDTO(products);

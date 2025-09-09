@@ -27,5 +27,4 @@ public class ProductService {
         return productRepository.findProductByBrand_NameIgnoreCase(brand);
     }
 
-
 }

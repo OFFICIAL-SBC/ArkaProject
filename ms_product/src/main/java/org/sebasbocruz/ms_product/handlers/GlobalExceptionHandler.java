@@ -1,6 +1,7 @@
 package org.sebasbocruz.ms_product.handlers;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -87,6 +88,51 @@ public class GlobalExceptionHandler {
                 .header("X-Trace-ID", errorResponse.getTraceId())
                 .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .body(errorResponse);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(EntityNotFoundException ex, HttpServletRequest req) {
+
+        log.error("Not entity found in {}: {}", req.getRequestURI(), ex.getMessage(), ex);
+
+
+        // Extraer parámetros de la request para contexto
+        String category = req.getParameter("category");
+        String brand = req.getParameter("brand");
+
+        Map<String, Object> details = new HashMap<>();
+        if (category != null) {
+            details.put("category", category);
+        }
+        if (brand != null) {
+            details.put("brand", brand);
+        }
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .error("ENTITY_NOT_FOUND")
+                .message("There were not entities FOUND")
+                .status(HttpStatus.NOT_FOUND.value())
+                .path(req.getRequestURI())
+                .method(req.getMethod())
+                .timestamp(LocalDateTime.now())
+                .details(details)
+                .traceId(generateTraceId())
+                .build();
+
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .header("X-Error-Type", "ENTITY_NOT_FOUND_ERROR")
+                .header("X-Trace-ID", errorResponse.getTraceId())
+                .header("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+
+        if (category != null) {
+            responseBuilder.header("X-Category", category);
+        }
+        if (brand != null) {
+            responseBuilder.header("X-Brand", brand);
+        }
+
+        return responseBuilder.body(errorResponse);
     }
 
     @ExceptionHandler(DataAccessException.class)
