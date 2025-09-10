@@ -24,7 +24,6 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    // DTO para respuestas de error estructuradas
     @Data
     @Builder
     @NoArgsConstructor
@@ -43,9 +42,6 @@ public class GlobalExceptionHandler {
         private String traceId;
     }
 
-    // ============================
-    // ERRORES ESPECÍFICOS DEL CONTROLADOR
-    // ============================
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(
