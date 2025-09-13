@@ -1,5 +1,6 @@
 package org.sebasbocruz.ms_cart.infrastructure.adapters.messaging.config;
 
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

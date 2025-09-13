@@ -40,7 +40,7 @@ public class CartEntity {
     @ToString.Exclude @EqualsAndHashCode.Exclude
     private CurrencyEntity currencyEntity;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "cartEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @ToString.Exclude @EqualsAndHashCode.Exclude
     private List<CartDetailEntity> details = new ArrayList<>();
