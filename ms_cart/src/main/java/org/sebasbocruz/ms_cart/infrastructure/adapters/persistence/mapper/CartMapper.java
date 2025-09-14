@@ -9,14 +9,20 @@ import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.UserId;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductId;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductPrice;
+import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.CartDTO;
+import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.LineDTO;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.entity.schemas.cart.CartEntity;
+import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+@Component
 public final class CartMapper {
 
-    public static Cart toDomain(CartEntity entity) {
+    public Cart fromInfrastructureToDomain(CartEntity entity) {
         CartId id       = new CartId(entity.getId());
         UserId userId   = new UserId(entity.getUserEntity().getId());
         CurrencyCode currency = entity.getCurrencyEntity().getCode();
@@ -34,4 +40,22 @@ public final class CartMapper {
 
         return Cart.rehydrate(id, userId, currency, state, lines);
     }
+
+    public CartDTO fromInfrastructureToClient(CartEntity entity){
+
+        double accumulator = 0.0;
+        List<LineDTO> lines = new ArrayList<LineDTO>();
+
+        for(var detailEntity : entity.getDetails()){
+            String name = detailEntity.getProduct().getName();
+            int amount = detailEntity.getAmount();
+            double subtotal = detailEntity.getAmount()*detailEntity.getProduct().getPrice();
+            accumulator += subtotal;
+            lines.add(new LineDTO(name,amount,subtotal));
+        }
+
+        return new CartDTO(accumulator,lines);
+    }
+
+
 }

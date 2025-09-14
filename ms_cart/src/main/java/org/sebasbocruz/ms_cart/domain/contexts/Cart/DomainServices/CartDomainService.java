@@ -1,7 +1,7 @@
 package org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainServices;
 
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.Aggregate.Cart;
-import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.query.StockPolicy;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.out.StockPolicy;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductId;
 
 public class CartDomainService {

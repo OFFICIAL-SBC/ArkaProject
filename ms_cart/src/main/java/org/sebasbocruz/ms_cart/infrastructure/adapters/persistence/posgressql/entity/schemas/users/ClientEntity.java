@@ -36,7 +36,7 @@ public class ClientEntity {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "clientEntity", cascade = CascadeType.ALL, orphanRemoval = false)
     @Builder.Default
     @ToString.Exclude @EqualsAndHashCode.Exclude
     private List<UserEntity> userEntities = new ArrayList<>();

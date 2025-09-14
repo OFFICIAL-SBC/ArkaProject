@@ -21,7 +21,6 @@ public class UserEntity {
     @Column(name = "user_id")
     private Long id;
 
-    // Optional FK -> users.client
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", foreignKey = @ForeignKey(name = "fk_user_client"))
     @ToString.Exclude @EqualsAndHashCode.Exclude
@@ -53,7 +52,7 @@ public class UserEntity {
     private Instant updatedAt;
 
     // One user -> many carts
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = false)
     @Builder.Default
     @ToString.Exclude @EqualsAndHashCode.Exclude
     private List<CartEntity> cartEntities = new ArrayList<>();

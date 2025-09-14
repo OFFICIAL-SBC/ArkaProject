@@ -2,6 +2,7 @@ package org.sebasbocruz.ms_cart.application.query;
 
 
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.query.GetProductsGateway;
+import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.CartDTO;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.entity.schemas.cart.CartEntity;
 
 import javax.swing.text.html.parser.Entity;
@@ -16,8 +17,8 @@ public class GetCartByUserIDUseCase {
         this.getProductsGateway = getProductsGateway;
     }
 
-    public Optional<CartEntity> getCartByUserID(Long userId){
-        return getProductsGateway.getCartByUserID(userId);
+    public Optional<CartDTO> getOpenedCartByUserID(Long userId){
+        return getProductsGateway.getOpenedCartByUserID(userId);
     }
 
 }

@@ -1,4 +1,4 @@
-package org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.query;
+package org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.out;
 
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductId;
 

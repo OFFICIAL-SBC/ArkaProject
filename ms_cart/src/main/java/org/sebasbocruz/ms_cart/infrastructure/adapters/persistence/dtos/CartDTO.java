@@ -1,4 +1,4 @@
-package org.sebasbocruz.ms_cart.infrastructure.adapters.dtos;
+package org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos;
 
 import lombok.Data;
 
