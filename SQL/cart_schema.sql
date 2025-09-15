@@ -4,6 +4,12 @@
 CREATE SCHEMA IF NOT EXISTS users;
 CREATE SCHEMA IF NOT EXISTS cart;
 
+-- =============================
+-- ACCESS
+-- =============================
+
+GRANT USAGE ON SCHEMA public TO app_owner;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_owner;
 
 -- =============================
 -- ENUMS
