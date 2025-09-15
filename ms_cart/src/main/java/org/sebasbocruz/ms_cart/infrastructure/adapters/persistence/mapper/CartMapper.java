@@ -54,7 +54,7 @@ public final class CartMapper {
             lines.add(new LineDTO(name,amount,subtotal));
         }
 
-        return new CartDTO(accumulator,lines);
+        return new CartDTO(entity.getCurrencyEntity().getCode(),accumulator,lines,entity.getUserEntity().getId());
     }
 
 

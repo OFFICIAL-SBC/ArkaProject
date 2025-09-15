@@ -7,7 +7,8 @@ import org.springframework.context.annotation.FilterType;
 @Configuration
 @ComponentScan(
         basePackages = {
-                "org.sebasbocruz.ms_cart.application.query"
+                "org.sebasbocruz.ms_cart.application.query",
+                "org.sebasbocruz.ms_cart.application.command"
         },
         includeFilters = {
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "^.+UseCase$")
