@@ -2,6 +2,7 @@ package org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.g
 
 import lombok.RequiredArgsConstructor;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CartState;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.CartOpened;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainServices.CartDomainService;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.commands.CartCommandsGateway;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.out.DomainEventPublisher;
@@ -45,12 +46,13 @@ public class CartCommandsGatewayImpl implements CartCommandsGateway {
 
         CartEntity cartSaved = cartRepository.save(cartEntity);
 
-        //publisher.publish(new CartOpened(cartSaved.getId(), cartSaved.getUserEntity().getId(), cartSaved.getCurrencyEntity().getCode().name()));
+        publisher.publish(new CartOpened(cartSaved.getId(), cartSaved.getUserEntity().getId(), cartSaved.getCurrencyEntity().getCode().name()));
 
-        return new CartDTO(cartSaved.getCurrencyEntity().getCode(),
-                0.0,
-                new ArrayList<LineDTO>(),
-                cartSaved.getUserEntity().getId()
+        return new CartDTO(
+                    cartSaved.getCurrencyEntity().getCode(),
+                    0.0,
+                    new ArrayList<LineDTO>(),
+                    cartSaved.getUserEntity().getId()
                 );
     }
 }
