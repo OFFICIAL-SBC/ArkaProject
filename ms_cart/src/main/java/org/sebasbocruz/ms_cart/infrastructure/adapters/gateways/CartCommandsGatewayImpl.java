@@ -1,4 +1,4 @@
-package org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.gateways;
+package org.sebasbocruz.ms_cart.infrastructure.adapters.gateways;
 
 import lombok.RequiredArgsConstructor;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CartState;
@@ -12,10 +12,10 @@ import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.en
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.entity.schemas.cart.CartStateEntity;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.entity.schemas.common.CurrencyEntity;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.entity.schemas.users.UserEntity;
-import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.repositories.CartRepository;
-import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.repositories.CartStateRepository;
-import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.repositories.CurrencyEntityRepository;
-import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.repositories.UserRepository;
+import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.repositories.CartRepository;
+import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.repositories.CartStateRepository;
+import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.repositories.CurrencyEntityRepository;
+import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

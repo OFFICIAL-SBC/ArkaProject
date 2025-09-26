@@ -1,5 +1,7 @@
 package org.sebasbocruz.ms_cart.domain.contexts.Cart.Aggregate;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CartState;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CurrencyCode;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.*;
@@ -15,6 +17,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+@Getter
+@Setter
 public class Cart {
 
     private final CartId id;
@@ -24,20 +28,15 @@ public class Cart {
     private final LinkedHashMap<ProductId, CartLine> lines = new LinkedHashMap<>();
     private final List<Object> domainEvents = new ArrayList<>();
 
-    private Cart(CartId id, UserId userId, CurrencyCode currency, CartState state) {
-        this.id = id; this.userId = userId; this.currency = currency;
-        this.state = state;
-        domainEvents.add(new CartOpened(id.value(), userId.value(), currency.name()));
-    }
-    public static Cart open(CartId id, UserId userId, CurrencyCode currency) { return new Cart(id, userId, currency, CartState.OPEN); }
 
-    // ! Since it is Rehydrating does not need to generate events
-    public static Cart rehydrate(CartId id, UserId userId, CurrencyCode currency, CartState state,
-                                 Map<ProductId, CartLine> lines) {
-        Cart c = new Cart(id, userId, currency, state);
-        c.lines.putAll(lines);
-        return c;
+    private Cart(CartId id, UserId userId, CurrencyCode currency, CartState state,Map<ProductId, CartLine> lines ) {
+        this.id = id;
+        this.userId = userId;
+        this.currency = currency;
+        this.state = state;
+        this.lines.putAll(lines);
     }
+
 
     public void addItem(ProductId productId, int quantity, ProductName name, ProductPrice price) {
         ensureCartIsOpen();

@@ -11,8 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
     public static final String EXCHANGE = "cart.event.exchange";
-    public static final String QUEUE = "cart.event.queue";
-    // sugerencia de routing keys: cart.opened, cart.item.added, cart.converted...
+
 
     @Bean
     public MessageConverter jsonMessageConverter() {
@@ -27,21 +26,59 @@ public class RabbitConfig {
     }
 
 
-    @Bean
-    public Queue cartQueue(){
-        return new Queue(QUEUE);
-    }
-
+    // * Defining the only exchange
     @Bean
     public TopicExchange cartExchange() { return new TopicExchange(EXCHANGE, true, false); }
 
-    // ! Binding a queue and exchange using Routing Key
+
+    // * Defining the queues
     @Bean
-    public Binding cartBinding() {
-        return BindingBuilder.bind(cartQueue())
-                .to(cartExchange())
-                .with("cart.event.routing.key");
+    Queue inventoryQueue(){
+        return QueueBuilder.durable("cart.inventory.queue").build();
     }
+    @Bean
+    Queue ordersQueue(){
+        return QueueBuilder.durable("cart.orders.queue").build();
+    }
+
+    @Bean
+    Queue notificationsQueue(){
+        return QueueBuilder.durable("cart.notifications.queue").build();
+    }
+
+    // * Defining the Bindings
+
+    // Inventory
+    @Bean
+    Binding invItems(TopicExchange cartExchange) {
+        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.cart_item_*");
+    }
+    @Bean
+    Binding invConverted(TopicExchange cartExchange) {
+        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.cart_converted");
+    }
+    @Bean
+    Binding invCancelled(TopicExchange cartExchange) {
+        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.cart_cancelled");
+    }
+    @Bean
+    Binding invEmptied(TopicExchange cartExchange) {
+        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.cart_emptied");
+    }
+
+    // Billing
+    @Bean
+    Binding billConverted(TopicExchange cartExchange) {
+        return BindingBuilder.bind(ordersQueue()).to(cartExchange).with("cart.cart_converted");
+    }
+
+    // Notifications
+    @Bean
+    Binding notifLifecycle(TopicExchange cartExchange) {
+        return BindingBuilder.bind(notificationsQueue()).to(cartExchange)
+                .with("cart.cart_abandoned");
+    }
+
 
     // * SpringBoot will automatically configure these 3 beans by default
     // ConnectionFactory

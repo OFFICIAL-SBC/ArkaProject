@@ -13,10 +13,9 @@ public class RabbitDomainEventPublisher implements DomainEventPublisher {
 
     @Override
     public void publish(Object event) {
-//        String rk = "cart." + event.getClass().getSimpleName().replaceAll("([A-Z])", "_$1")
-//                .toLowerCase().substring(1); // cart.cart_opened
+        String rk = "cart." + event.getClass().getSimpleName().replaceAll("([A-Z])", "_$1")
+                .toLowerCase().substring(1); // cart.cart_opened
 
-        String rk = "cart.event.routing.key";
         amqp.convertAndSend(RabbitConfig.EXCHANGE, rk, event);
     }
 }

@@ -7,6 +7,7 @@ import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 public record CartLine(ProductName productName, int quantity, double subtotal) {
 
     // ! This is the compact constructor, a SHORTHAND WAY of redefining the canonical constructor.
+    // ! The assignations of params it is made IMPLICIT AT THE END OF THE BLOCK
     public CartLine {
         if (quantity <= 0) throw new IllegalArgumentException("Quantity must be greater than  0");
     }
