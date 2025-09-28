@@ -158,6 +158,8 @@ VALUES (3, 4, 5);
 
 SELECT * FROM cart.cart;
 
+DELETE FROM cart.cart where cart_id > 6;
+
 
 INSERT INTO cart.cart_detail (cart_id, product_id, amount)
 VALUES 
@@ -174,5 +176,8 @@ VALUES
 INSERT INTO cart.cart_detail (cart_id, product_id, amount)
 VALUES 
 (3, 1, 1);  -- 1 unit of product 1
+
+
+SELECT * FROM cart.cart_detail;
 
 

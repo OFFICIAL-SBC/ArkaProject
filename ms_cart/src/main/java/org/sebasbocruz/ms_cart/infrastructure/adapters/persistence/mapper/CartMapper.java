@@ -38,7 +38,7 @@ public final class CartMapper {
             lines.put(productId, new CartLine(productName, numberOfProducts, productPrice.value()*numberOfProducts));
         }
 
-        return Cart.rehydrate(id, userId, currency, state, lines);
+        return new Cart (id, userId, currency, state, lines);
     }
 
     public CartDTO fromInfrastructureToClient(CartEntity entity){

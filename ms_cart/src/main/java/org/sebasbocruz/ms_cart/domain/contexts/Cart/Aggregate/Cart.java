@@ -29,7 +29,7 @@ public class Cart {
     private final List<Object> domainEvents = new ArrayList<>();
 
 
-    private Cart(CartId id, UserId userId, CurrencyCode currency, CartState state,Map<ProductId, CartLine> lines ) {
+    public Cart(CartId id, UserId userId, CurrencyCode currency, CartState state, Map<ProductId, CartLine> lines) {
         this.id = id;
         this.userId = userId;
         this.currency = currency;

@@ -1,7 +1,8 @@
-package org.sebasbocruz.ms_product.handlers;
+package org.sebasbocruz.ms_cart.infrastructure.adapters.hanlders;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,47 +43,6 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(
-            IllegalArgumentException ex, HttpServletRequest request) {
-
-        log.warn("Invalid argument in {}: {}", request.getRequestURI(), ex.getMessage());
-
-        // Detectar si es categoría o marca basándose en la URL
-        String errorType = "INVALID_PARAMETER";
-        String headerName = "X-Parameter";
-
-        if (request.getRequestURI().contains("/category")) {
-            errorType = "INVALID_CATEGORY";
-            headerName = "X-Category";
-        } else if (request.getRequestURI().contains("/brand")) {
-            errorType = "INVALID_BRAND";
-            headerName = "X-Brand";
-        }
-
-        Map<String, Object> details = new HashMap<>();
-        details.put("parameter", request.getParameter("category") != null ?
-                request.getParameter("category") : request.getParameter("brand"));
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .error(errorType)
-                .message(ex.getMessage())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .path(request.getRequestURI())
-                .method(request.getMethod())
-                .timestamp(LocalDateTime.now())
-                .details(details)
-                .build();
-
-        return ResponseEntity
-                .badRequest()
-                .header("X-Error-Type", errorType)
-                .header(headerName, (String) details.get("parameter"))
-                .header("X-Error-Message", ex.getMessage())
-                .header("X-Trace-ID", errorResponse.getTraceId())
-                .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .body(errorResponse);
-    }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(EntityNotFoundException ex, HttpServletRequest req) {
@@ -91,26 +50,14 @@ public class GlobalExceptionHandler {
         log.error("Not entity found in {}: {}", req.getRequestURI(), ex.getMessage(), ex);
 
 
-        // Extract Params from request to give some context
-        String category = req.getParameter("category");
-        String brand = req.getParameter("brand");
-
-        Map<String, Object> details = new HashMap<>();
-        if (category != null) {
-            details.put("category", category);
-        }
-        if (brand != null) {
-            details.put("brand", brand);
-        }
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("ENTITY_NOT_FOUND")
-                .message("There were not entities FOUND")
+                .message(ex.getMessage())
                 .status(HttpStatus.NOT_FOUND.value())
                 .path(req.getRequestURI())
                 .method(req.getMethod())
                 .timestamp(LocalDateTime.now())
-                .details(details)
                 .build();
 
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity
@@ -119,12 +66,6 @@ public class GlobalExceptionHandler {
                 .header("X-Trace-ID", errorResponse.getTraceId())
                 .header("Content-Type", MediaType.APPLICATION_JSON_VALUE);
 
-        if (category != null) {
-            responseBuilder.header("X-Category", category);
-        }
-        if (brand != null) {
-            responseBuilder.header("X-Brand", brand);
-        }
 
         return responseBuilder.body(errorResponse);
     }
@@ -135,18 +76,6 @@ public class GlobalExceptionHandler {
 
         log.error("Database error in {}: {}", request.getRequestURI(), ex.getMessage(), ex);
 
-        // Extract Params from request to give some context
-        String category = request.getParameter("category");
-        String brand = request.getParameter("brand");
-
-        Map<String, Object> details = new HashMap<>();
-        if (category != null) {
-            details.put("category", category);
-        }
-        if (brand != null) {
-            details.put("brand", brand);
-        }
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("DATABASE_ERROR")
                 .message("Error interno del servidor. Contacte al administrador si persiste.")
@@ -154,7 +83,6 @@ public class GlobalExceptionHandler {
                 .path(request.getRequestURI())
                 .method(request.getMethod())
                 .timestamp(LocalDateTime.now())
-                .details(details)
                 .build();
 
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity
@@ -163,13 +91,6 @@ public class GlobalExceptionHandler {
                 .header("X-Trace-ID", errorResponse.getTraceId())
                 .header("Content-Type", MediaType.APPLICATION_JSON_VALUE);
 
-        // Add specific headers based on the provided context
-        if (category != null) {
-            responseBuilder.header("X-Category", category);
-        }
-        if (brand != null) {
-            responseBuilder.header("X-Brand", brand);
-        }
 
         return responseBuilder.body(errorResponse);
     }
@@ -202,22 +123,15 @@ public class GlobalExceptionHandler {
 
         log.error("Unexpected error in {}: {}", request.getRequestURI(), ex.getMessage(), ex);
 
-        // Extract Params from request to give some context
-        String category = request.getParameter("category");
-        String brand = request.getParameter("brand");
+
 
         Map<String, Object> details = new HashMap<>();
         details.put("exceptionType", ex.getClass().getSimpleName());
-        if (category != null) {
-            details.put("category", category);
-        }
-        if (brand != null) {
-            details.put("brand", brand);
-        }
+
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("INTERNAL_ERROR")
-                .message("Error interno del servidor. Contacte al administrador si persiste.")
+                .message(ex.getMessage())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .path(request.getRequestURI())
                 .method(request.getMethod())
@@ -231,15 +145,7 @@ public class GlobalExceptionHandler {
                 .header("X-Trace-ID", errorResponse.getTraceId())
                 .header("Content-Type", MediaType.APPLICATION_JSON_VALUE);
 
-        // Add specific headers based on the provided context
-        if (category != null) {
-            responseBuilder.header("X-Category", category);
-        }
-        if (brand != null) {
-            responseBuilder.header("X-Brand", brand);
-        }
 
         return responseBuilder.body(errorResponse);
     }
-
 }
