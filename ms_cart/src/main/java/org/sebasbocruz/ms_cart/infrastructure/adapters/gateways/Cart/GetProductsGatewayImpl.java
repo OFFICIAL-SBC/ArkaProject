@@ -1,4 +1,4 @@
-package org.sebasbocruz.ms_cart.infrastructure.adapters.gateways;
+package org.sebasbocruz.ms_cart.infrastructure.adapters.gateways.Cart;
 
 import org.sebasbocruz.ms_cart.domain.commons.enums.CartState;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.query.GetProductsGateway;
@@ -14,22 +14,17 @@ import java.util.Optional;
 public class GetProductsGatewayImpl implements GetProductsGateway {
 
     private final CartRepository cartRepository;
-    private final CartMapper cartMapper;
+
 
     private GetProductsGatewayImpl(CartRepository cartRepository,CartMapper cartMapper){
         this.cartRepository = cartRepository;
-        this.cartMapper = cartMapper;
     }
 
     @Override
     public Optional<CartDTO> getOpenedCartByUserID(Long userId) {
         Optional<CartEntity> result = cartRepository.findByUserEntity_IdAndCartState_CartState(userId, CartState.OPEN);
 
-        if(result.isEmpty()){
-            return Optional.empty();
-        }
-
-        return Optional.of(cartMapper.fromInfrastructureToClient(result.get()));
+        return result.map(CartMapper::fromInfrastructureToClient);
 
     }
 }

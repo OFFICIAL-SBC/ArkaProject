@@ -30,7 +30,7 @@ public class CartCommandController {
                 .body(createCartUseCase.createCart(cartRequest));
     }
 
-    @PostMapping("/add-item/{cart_id}")
+    @PostMapping("/item/{cart_id}")
     public ResponseEntity<LineDTO> addNewItemToAExistingCart(@PathVariable Long cart_id, @RequestBody LineDTO line) {
         LineDTO lineAdded = addItemToExistingCartUseCase.addItemToExistingCart(cart_id,line);
         return ResponseEntity.

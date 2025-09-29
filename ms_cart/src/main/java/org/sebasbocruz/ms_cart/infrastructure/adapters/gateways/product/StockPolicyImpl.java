@@ -1,4 +1,4 @@
-package org.sebasbocruz.ms_cart.infrastructure.adapters.gateways;
+package org.sebasbocruz.ms_cart.infrastructure.adapters.gateways.product;
 
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.out.StockPolicy;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductId;

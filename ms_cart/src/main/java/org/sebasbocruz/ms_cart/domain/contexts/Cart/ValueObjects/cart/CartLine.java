@@ -1,4 +1,4 @@
-package org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects;
+package org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart;
 
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 

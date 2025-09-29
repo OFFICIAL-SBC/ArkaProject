@@ -7,8 +7,9 @@ import java.util.List;
 
 @Data
 public class CartDTO {
+    final Long userID;
     final CurrencyCode currencyCode;
     final Double  totalPrice;
     final List<LineDTO> lines;
-    final Long userID;
+
 }

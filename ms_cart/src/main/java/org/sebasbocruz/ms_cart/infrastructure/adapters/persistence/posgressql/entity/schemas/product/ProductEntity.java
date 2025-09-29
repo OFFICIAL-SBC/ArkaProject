@@ -20,5 +20,4 @@ public class ProductEntity {
     @Column(nullable = false)
     private Double price;
 
-    // add other columns if you have them (brand_id, category_id, etc.)
 }

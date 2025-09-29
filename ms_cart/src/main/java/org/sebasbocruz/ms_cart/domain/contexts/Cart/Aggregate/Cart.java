@@ -5,9 +5,9 @@ import lombok.Setter;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CartState;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CurrencyCode;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.*;
-import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.CartLine;
-import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.CartId;
-import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.UserId;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.CartLine;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.CartId;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.UserId;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductId;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductPrice;
@@ -40,7 +40,6 @@ public class Cart {
 
     public void addItem(ProductId productId, int quantity, ProductName name, ProductPrice price) {
         ensureCartIsOpen();
-        if (quantity <= 0) throw new IllegalArgumentException("qty > 0");
         lines.merge(productId, new CartLine(name, quantity, quantity*price.value()),
                 (oldLine, newLine) -> {
                     int newAmount = oldLine.quantity() + newLine.quantity();

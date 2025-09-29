@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class LineDTO {
+    private Long productId;
     private String productName;
     private int numberOfProducts;
     private Double subtotal;
