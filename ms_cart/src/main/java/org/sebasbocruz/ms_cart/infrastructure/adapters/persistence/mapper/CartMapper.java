@@ -63,6 +63,7 @@ public final class CartMapper {
         }
         return new Cart(cart_id, userId, currency, state, lines);
     }
+
     public static void synchronizeJpaEntityWithDomain(Cart domainCart, CartEntity cartEntity, Function<Long, ProductEntity> productById) {
 
         Map<Long, Integer> desiredCartDetailList = domainCart.getLines().entrySet().stream()

@@ -17,7 +17,7 @@ public class CatalogQueryImpl implements CatalogQuery {
     private final ProductEntityRepository productEntityRepository;
 
     @Override
-    public Optional<Product> getProduct(String productName) {
-        return productEntityRepository.findByName(productName).map( ProductMapper::fromInfrastructureToDomain);
+    public Optional<Product> getProduct(Long product_id) {
+        return productEntityRepository.findById(product_id).map( ProductMapper::fromInfrastructureToDomain);
     }
 }

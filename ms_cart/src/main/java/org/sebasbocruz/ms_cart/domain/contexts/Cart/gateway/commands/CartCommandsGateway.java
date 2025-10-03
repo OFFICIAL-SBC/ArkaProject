@@ -12,4 +12,5 @@ public interface CartCommandsGateway {
     Optional<Cart> findByUserIdAndState(Long user_id, CartState cartState);
     Optional<Cart> findById(CartId id);
     Cart save(Cart cartDomain);
+
 }

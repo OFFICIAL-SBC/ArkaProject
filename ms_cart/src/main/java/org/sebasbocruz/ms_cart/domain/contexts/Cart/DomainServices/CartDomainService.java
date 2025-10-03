@@ -6,7 +6,11 @@ import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.out.StockPolicy;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductId;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductPrice;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+
 
 @Component
 @RequiredArgsConstructor

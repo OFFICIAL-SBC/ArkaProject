@@ -12,6 +12,7 @@ import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductId;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductPrice;
 
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Map;
 @Getter
 @Setter
 public class Cart {
+
 
     private final CartId id;
     private final UserId userId;

@@ -20,9 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -44,36 +42,24 @@ public class CartCommandsGatewayImpl implements CartCommandsGateway {
     @Override
     public Cart createNewCart(CartDTO cartDTO) {
 
-        CartStateEntity cartStateEntity = cartStateRepository.findCartStateEntitiesByCartState(CartState.OPEN);
-        UserEntity userEntity = userRepository.findUserEntitiesById(cartDTO.getUserID());
-        CurrencyEntity currencyEntity = currencyEntityRepository.findCurrencyEntitiesByCode(cartDTO.getCurrencyCode());
+        CartStateEntity cartStateEntity = cartStateRepository.findCartStateEntitiesByCartState(CartState.OPEN)
+                 .orElseThrow(() -> new EntityNotFoundException("Cart state not found"));
 
-        CartEntity cartEntity =  CartEntity.builder()
-                .userEntity(userEntity)
-                .cartState(cartStateEntity)
-                .currencyEntity(currencyEntity)
-                .build();
+        UserEntity userEntity = userRepository.findUserEntitiesById(cartDTO.getUserID())
+                .orElseThrow(() -> new EntityNotFoundException("User " + cartDTO.getUserID() + " not found"));
 
-        List<CartDetailEntity> details = cartDTO.getLines().stream()
-                .map(lineDTO -> {
-                    ProductEntity productEntity = productEntityRepository.findById(lineDTO.getProductId())
-                            .orElseThrow(() -> new EntityNotFoundException(
-                                    "The product with ID " + lineDTO.getProductId() + " was not found"));
+        CurrencyEntity currencyEntity = currencyEntityRepository.findCurrencyEntitiesByCode(cartDTO.getCurrencyCode())
+                .orElseThrow(() -> new EntityNotFoundException("Currency " + cartDTO.getCurrencyCode() + " not found"));
 
-                    return CartDetailEntity.builder()
-                            .cartEntity(cartEntity)
-                            .amount(lineDTO.getNumberOfProducts())
-                            .product(productEntity)
-                            .build();
-                })
-                .toList();
+        Map<Long, ProductEntity> productsById = fetchProductsById(cartDTO.getLines());
 
-        cartEntity.setDetails(details);
+        CartEntity cartEntity = buildCartEntity(userEntity, currencyEntity, cartStateEntity, cartDTO, productsById);
 
         CartEntity cartSaved = cartRepository.save(cartEntity);
 
         return CartMapper.fromInfrastructureToDomain(cartSaved);
     }
+
 
     @Override
     public Optional<Cart> findByUserIdAndState(Long user_id, CartState cartState){
@@ -93,5 +79,44 @@ public class CartCommandsGatewayImpl implements CartCommandsGateway {
         return CartMapper.fromInfrastructureToDomain(cartRepository.save(cartEntity));
     }
 
+
+    private Map<Long, ProductEntity> fetchProductsById(List<LineDTO> lines) {
+        Set<Long> ids = lines.stream().map(LineDTO::getProductId).collect(Collectors.toSet());
+        List<ProductEntity> found = productEntityRepository.findAllById(ids);
+        Map<Long, ProductEntity> map = found.stream().collect(Collectors.toMap(ProductEntity::getId, p -> p));
+
+        // ensure all exist
+        for (Long id : ids) {
+            if (!map.containsKey(id)) {
+                throw new EntityNotFoundException("The product with ID " + id + " was not found");
+            }
+        }
+        return map;
+    }
+
+    private CartEntity buildCartEntity(
+            UserEntity user,
+            CurrencyEntity currency,
+            CartStateEntity openState,
+            CartDTO cartDTO,
+            Map<Long, ProductEntity> productsById
+    ) {
+        CartEntity cart = CartEntity.builder()
+                .userEntity(user)
+                .cartState(openState)
+                .currencyEntity(currency)
+                .build();
+
+        List<CartDetailEntity> details = cartDTO.getLines().stream()
+                .map(line -> CartDetailEntity.builder()
+                        .cartEntity(cart)
+                        .amount(line.getNumberOfProducts())
+                        .product(productsById.get(line.getProductId()))
+                        .build())
+                .toList();
+
+        cart.setDetails(details);
+        return cart;
+    }
 
 }

@@ -5,5 +5,5 @@ import org.sebasbocruz.ms_cart.domain.contexts.Product.entities.Product;
 import java.util.Optional;
 
 public interface CatalogQuery {
-    Optional<Product> getProduct(String productName);
+    Optional<Product> getProduct(Long product_id) ;
 }
