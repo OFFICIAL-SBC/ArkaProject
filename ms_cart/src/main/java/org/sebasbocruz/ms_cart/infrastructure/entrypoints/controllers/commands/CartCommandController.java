@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.sound.sampled.Line;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -31,8 +32,8 @@ public class CartCommandController {
     }
 
     @PostMapping("/item/{cart_id}")
-    public ResponseEntity<LineDTO> addNewItemToAExistingCart(@PathVariable Long cart_id, @RequestBody LineDTO line) {
-        LineDTO lineAdded = addItemToExistingCartUseCase.addItemToExistingCart(cart_id,line);
+    public ResponseEntity<List<LineDTO>> addNewItemsToAExistingCart(@PathVariable Long cart_id, @RequestBody List<LineDTO> lines) {
+        List<LineDTO> lineAdded = addItemToExistingCartUseCase.addItemsToExistingCart(cart_id,lines);
         return ResponseEntity.
                 status(HttpStatus.CREATED)
                 .body(lineAdded);

@@ -117,6 +117,12 @@ VALUES
 (1, 'employee@acme.com', 'Eve Employee', 'hashed_pwd_2', 'EMPLOYEE', '+57-3011111122'),
 (2, 'customer@globex.com', 'Charlie Customer', 'hashed_pwd_3', 'CUSTOMER', '+57-3022222222');
 
+INSERT INTO users.users (client_id, email, full_name, password_hash, role_user, phone)
+VALUES 
+(1, 'sebas@acme.com', 'Sebas Bonilla', 'hashed_pwd_1', 'ADMIN', '+57-3011121111'),
+(1, 'cata@acme.com', 'Catalina Bonilla', 'hashed_pwd_2', 'EMPLOYEE', '+57-3011411122'),
+(2, 'gloria@globex.com', 'Gloria Edith Cruz', 'hashed_pwd_3', 'CUSTOMER', '+57-3022128222');
+
 SELECT * FROM users.users;
 
 -- Public
@@ -179,5 +185,7 @@ VALUES
 
 
 SELECT * FROM cart.cart_detail;
+SELECT * FROM cart.cart;
 
+SELECT c.cart_id, c.amount, c.product_id, p.name FROM cart.cart_detail AS c INNER JOIN product.product AS p on c.product_id = p.product_id WHERE c.cart_id = 10;
 

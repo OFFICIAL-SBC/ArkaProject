@@ -17,7 +17,10 @@ import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.LineDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class AddItemToExistingCartUseCase {
@@ -29,8 +32,16 @@ public class AddItemToExistingCartUseCase {
     private final CartDomainService domainService;
     private final DomainEventPublisher publisher;
 
+    public List<LineDTO> addItemsToExistingCart(Long cart_id, List<LineDTO> newLines){
 
-    public LineDTO addItemToExistingCart(Long cart_id, LineDTO newLine){
+        if(newLines.isEmpty()) throw new IllegalArgumentException("The list can not be empty");
+
+        List<LineDTO> linesAdded = newLines.stream().map(line -> addItemToExistingCart(cart_id,line)).collect(Collectors.toList());;
+
+        return linesAdded;
+    }
+
+    private LineDTO addItemToExistingCart(Long cart_id, LineDTO newLine){
 
         // --- Precondition checks
         Objects.requireNonNull(newLine, "newLine must not be null");
