@@ -2,8 +2,8 @@ package org.sebasbocruz.ms_cart.infrastructure.entrypoints.controllers.commands;
 
 import lombok.RequiredArgsConstructor;
 import org.sebasbocruz.ms_cart.application.command.AddItemToExistingCartUseCase;
-import org.sebasbocruz.ms_cart.application.command.AddItemToExistingCartUseCase;
 import org.sebasbocruz.ms_cart.application.command.CreateCartUseCase;
+import org.sebasbocruz.ms_cart.application.command.DeleteItemFromExistingCartUseCase;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.CartDTO;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.LineDTO;
 import org.springframework.http.HttpStatus;
@@ -22,6 +22,7 @@ public class CartCommandController {
 
     private final CreateCartUseCase createCartUseCase;
     private final AddItemToExistingCartUseCase addItemToExistingCartUseCase;
+    private final DeleteItemFromExistingCartUseCase deleteItemsFromExistingCart;
 
 
     @PostMapping("/create")
@@ -38,6 +39,12 @@ public class CartCommandController {
                 status(HttpStatus.CREATED)
                 .body(lineAdded);
     }
+
+    @DeleteMapping("/item/{cart_id}")
+    public ResponseEntity<CartDTO> deleteItemFromAnExistingCart(@PathVariable Long cart_id, @RequestParam long product_id){
+
+    }
+
 
 
 }

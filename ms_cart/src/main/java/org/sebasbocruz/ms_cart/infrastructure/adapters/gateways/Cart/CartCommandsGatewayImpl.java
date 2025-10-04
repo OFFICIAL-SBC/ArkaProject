@@ -67,7 +67,7 @@ public class CartCommandsGatewayImpl implements CartCommandsGateway {
     }
 
     @Override
-    public Optional<Cart> findById(CartId id) {
+    public Optional<Cart> finCartById(CartId id) {
         return cartRepository.findById(id.value()).map(CartMapper::fromInfrastructureToDomain);
     }
 
