@@ -22,7 +22,7 @@ public class CartCommandController {
 
     private final CreateCartUseCase createCartUseCase;
     private final AddItemToExistingCartUseCase addItemToExistingCartUseCase;
-    private final DeleteItemFromExistingCartUseCase deleteItemsFromExistingCart;
+    private final DeleteItemFromExistingCartUseCase deleteItemsFromExistingCartUseCase;
 
 
     @PostMapping("/create")
@@ -33,16 +33,20 @@ public class CartCommandController {
     }
 
     @PostMapping("/item/{cart_id}")
-    public ResponseEntity<List<LineDTO>> addNewItemsToAExistingCart(@PathVariable Long cart_id, @RequestBody List<LineDTO> lines) {
-        List<LineDTO> lineAdded = addItemToExistingCartUseCase.addItemsToExistingCart(cart_id,lines);
+    public ResponseEntity<LineDTO> addNewItemsToAExistingCart(@PathVariable Long cart_id, @RequestBody LineDTO line) {
+        LineDTO lineAdded = addItemToExistingCartUseCase.addItemToExistingCart(cart_id,line);
         return ResponseEntity.
                 status(HttpStatus.CREATED)
                 .body(lineAdded);
     }
 
     @DeleteMapping("/item/{cart_id}")
-    public ResponseEntity<CartDTO> deleteItemFromAnExistingCart(@PathVariable Long cart_id, @RequestParam long product_id){
+        public ResponseEntity<LineDTO> deleteItemFromAnExistingCart(@PathVariable Long cart_id, @RequestParam long product_id){
 
+            LineDTO lineDTODeleted = deleteItemsFromExistingCartUseCase.deleteItemFromExistingCart(cart_id,product_id);
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(lineDTODeleted);
     }
 
 

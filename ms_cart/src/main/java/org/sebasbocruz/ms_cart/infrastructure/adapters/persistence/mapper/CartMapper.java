@@ -15,10 +15,7 @@ import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.en
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.posgressql.entity.schemas.product.ProductEntity;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -66,24 +63,24 @@ public final class CartMapper {
 
     public static void synchronizeJpaEntityWithDomain(Cart domainCart, CartEntity cartEntity, Function<Long, ProductEntity> productById) {
 
-        Map<Long, Integer> desiredCartDetailList = domainCart.getLines().entrySet().stream()
+        Map<Long, Integer> desiredCartDetailListDomain = domainCart.getLines().entrySet().stream()
                 .collect(Collectors.toMap(setKeyValue -> setKeyValue.getKey().value(), setKeyValue -> setKeyValue.getValue().quantity()));
 
-        var cartDetailEntityIterator = cartEntity.getDetails().iterator();
+        Iterator<CartDetailEntity> cartDetailEntityIterator = cartEntity.getDetails().iterator();
 
         while (cartDetailEntityIterator.hasNext()) {
             CartDetailEntity cartDetailEntityNext = cartDetailEntityIterator.next();
             Long product_id = cartDetailEntityNext.getProduct().getId();
-            if (!desiredCartDetailList.containsKey(product_id)) {
+            if (!desiredCartDetailListDomain.containsKey(product_id)) {
                 cartDetailEntityIterator.remove(); // orphanRemoval -> DELETE
             } else {
-                cartDetailEntityNext.setAmount(desiredCartDetailList.get(product_id));
-                desiredCartDetailList.remove(product_id);
+                cartDetailEntityNext.setAmount(desiredCartDetailListDomain.get(product_id));
+                desiredCartDetailListDomain.remove(product_id);
             }
         }
 
-        for (var entry : desiredCartDetailList.entrySet()) {
-            var productsThatArentInTheEntityBuyTheyAreInTheDomain = new CartDetailEntity();
+        for (var entry : desiredCartDetailListDomain.entrySet()) {
+            CartDetailEntity productsThatArentInTheEntityBuyTheyAreInTheDomain = new CartDetailEntity();
             productsThatArentInTheEntityBuyTheyAreInTheDomain.setCartEntity(cartEntity);
             productsThatArentInTheEntityBuyTheyAreInTheDomain.setProduct(productById.apply(entry.getKey()));
             productsThatArentInTheEntityBuyTheyAreInTheDomain.setAmount(entry.getValue());

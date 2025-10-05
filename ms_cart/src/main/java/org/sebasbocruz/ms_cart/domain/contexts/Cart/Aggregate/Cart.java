@@ -1,5 +1,6 @@
 package org.sebasbocruz.ms_cart.domain.contexts.Cart.Aggregate;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.Getter;
 import lombok.Setter;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CartState;
@@ -13,6 +14,7 @@ import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductPrice;
 
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,10 +59,17 @@ public class Cart {
         domainEvents.add(new CartItemQuantityChanged(id.value(), productId.value(), quantity));
     }
 
-    public void removeItem(ProductId productId) {
+    public CartLine removeItem(ProductId productId) {
         ensureCartIsOpen();
-        if (lines.remove(productId) != null) domainEvents.add(new CartItemRemoved(id.value(), productId.value()));
-    }
+        CartLine cartLineRemoved = lines.remove(productId);
+            if (cartLineRemoved != null) {
+                domainEvents.add(new CartItemRemoved(id.value(), productId.value(),cartLineRemoved.quantity()));
+            }else {
+                throw new EntityNotFoundException("The product with ID "+productId.value()+" is not in the CART");
+            }
+
+            return cartLineRemoved;
+    };
 
     public void cancel(String reason) {
         ensureCartIsOpen();

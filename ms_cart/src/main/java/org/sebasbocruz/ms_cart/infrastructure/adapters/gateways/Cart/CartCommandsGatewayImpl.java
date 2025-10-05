@@ -73,14 +73,16 @@ public class CartCommandsGatewayImpl implements CartCommandsGateway {
 
     @Override
     public Cart save(Cart cartDomain) {
-        CartEntity cartEntity = cartRepository.findById(cartDomain.getId().value()).orElseGet(CartEntity::new);
+        CartEntity cartEntity = cartRepository.findById(cartDomain.getId().value())
+                .orElseThrow(() -> new EntityNotFoundException("The CART with id "+ cartDomain.getId().value()+"does not EXIST"));
 
         CartMapper.synchronizeJpaEntityWithDomain(cartDomain, cartEntity, productEntityRepository::getReferenceById);
         return CartMapper.fromInfrastructureToDomain(cartRepository.save(cartEntity));
     }
 
 
-    private Map<Long, ProductEntity> fetchProductsById(List<LineDTO> lines) {
+    @Override
+    public Map<Long, ProductEntity> fetchProductsById(List<LineDTO> lines) {
         Set<Long> ids = lines.stream().map(LineDTO::getProductId).collect(Collectors.toSet());
         List<ProductEntity> found = productEntityRepository.findAllById(ids);
         Map<Long, ProductEntity> map = found.stream().collect(Collectors.toMap(ProductEntity::getId, p -> p));

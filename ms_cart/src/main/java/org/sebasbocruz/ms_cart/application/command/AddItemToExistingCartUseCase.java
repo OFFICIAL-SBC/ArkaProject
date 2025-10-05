@@ -25,23 +25,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AddItemToExistingCartUseCase {
 
-    private Logger logger = LoggerFactory.getLogger(AddItemToExistingCartUseCase.class);
 
     private final CartCommandsGateway cartCommandsGateway;
     private final CatalogQuery catalogQuery;
     private final CartDomainService domainService;
     private final DomainEventPublisher publisher;
 
-    public List<LineDTO> addItemsToExistingCart(Long cart_id, List<LineDTO> newLines){
 
-        if(newLines.isEmpty()) throw new IllegalArgumentException("The list can not be empty");
-
-        List<LineDTO> linesAdded = newLines.stream().map(line -> addItemToExistingCart(cart_id,line)).collect(Collectors.toList());;
-
-        return linesAdded;
-    }
-
-    private LineDTO addItemToExistingCart(Long cart_id, LineDTO newLine){
+    public LineDTO addItemToExistingCart(Long cart_id, LineDTO newLine){
 
         // --- Precondition checks
         Objects.requireNonNull(newLine, "newLine must not be null");
@@ -53,13 +44,12 @@ public class AddItemToExistingCartUseCase {
             throw new IllegalArgumentException("productName must not be blank");
         }
 
-        Cart cart = cartCommandsGateway.findById(new CartId(cart_id))
+        Cart cart = cartCommandsGateway.finCartById(new CartId(cart_id))
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
 
         Product product = catalogQuery.getProduct(newLine.getProductId())
                 .orElseThrow(() -> new EntityNotFoundException("Product " + newLine.getProductName()+ " not found"));
 
-        logger.warn(product.toString());
 
         domainService.addWithPolicy(
                 cart,
@@ -72,8 +62,6 @@ public class AddItemToExistingCartUseCase {
         Cart cartSaved = cartCommandsGateway.save(cart);
 
         cartSaved.getDomainEvents().forEach(publisher::publish);
-
-        logger.warn(cartSaved.getLines().toString());
 
         CartLine lineToAdd = cartSaved.getLines().get(product.getId());
 
