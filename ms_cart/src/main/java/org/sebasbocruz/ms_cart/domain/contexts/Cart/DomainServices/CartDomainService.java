@@ -23,4 +23,9 @@ public class CartDomainService {
             cart.addItem(product_id,quantity, productName,price);
        }
 
+       public void changeItemQuantityWithPolicy(Cart cart, ProductId product_id, int quantity, ProductPrice price){
+           if (!stockPolicy.isAvailable(product_id, quantity)) throw new IllegalStateException("No stock AVAILABLE of product with ID"+ product_id);
+           cart.changeItemQuantity(product_id,quantity,price);
+        }
+
 }

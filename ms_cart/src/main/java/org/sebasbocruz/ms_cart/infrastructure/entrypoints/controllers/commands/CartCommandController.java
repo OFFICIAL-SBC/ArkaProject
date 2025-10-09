@@ -6,6 +6,7 @@ import org.sebasbocruz.ms_cart.application.command.CreateCartUseCase;
 import org.sebasbocruz.ms_cart.application.command.DeleteItemFromExistingCartUseCase;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.CartDTO;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.LineDTO;
+import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.QueryProductDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class CartCommandController {
     private final CreateCartUseCase createCartUseCase;
     private final AddItemToExistingCartUseCase addItemToExistingCartUseCase;
     private final DeleteItemFromExistingCartUseCase deleteItemsFromExistingCartUseCase;
+    private final ChangeItemQuantityUseCase changeItemQuantityUseCase;
 
 
     @PostMapping("/create")
@@ -49,6 +51,9 @@ public class CartCommandController {
                     .body(lineDTODeleted);
     }
 
+    @PutMapping("/item/{cart_id}")
+    public ResponseEntity<LineDTO> changeItemQuantity(@PathVariable Long cart_id, @RequestBody QueryProductDTO productData){
 
+    }
 
 }

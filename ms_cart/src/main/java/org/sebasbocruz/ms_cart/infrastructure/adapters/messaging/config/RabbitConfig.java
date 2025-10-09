@@ -51,32 +51,32 @@ public class RabbitConfig {
     // Inventory
     @Bean
     Binding invItems(TopicExchange cartExchange) {
-        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.cart_item_*");
+        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.item.*");
     }
     @Bean
     Binding invConverted(TopicExchange cartExchange) {
-        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.cart_converted");
+        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.converted");
     }
     @Bean
     Binding invCancelled(TopicExchange cartExchange) {
-        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.cart_cancelled");
+        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.cancelled");
     }
     @Bean
     Binding invEmptied(TopicExchange cartExchange) {
-        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.cart_emptied");
+        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.emptied");
     }
 
     // Billing
     @Bean
     Binding billConverted(TopicExchange cartExchange) {
-        return BindingBuilder.bind(ordersQueue()).to(cartExchange).with("cart.cart_converted");
+        return BindingBuilder.bind(ordersQueue()).to(cartExchange).with("cart.converted");
     }
 
     // Notifications
     @Bean
     Binding notifLifecycle(TopicExchange cartExchange) {
         return BindingBuilder.bind(notificationsQueue()).to(cartExchange)
-                .with("cart.cart_abandoned");
+                .with("cart.abandoned");
     }
 
 
