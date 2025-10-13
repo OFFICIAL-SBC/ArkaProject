@@ -51,7 +51,7 @@ public class RabbitConfig {
     // Inventory
     @Bean
     Binding invItems(TopicExchange cartExchange) {
-        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.item.*");
+        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.item.#");
     }
     @Bean
     Binding invConverted(TopicExchange cartExchange) {

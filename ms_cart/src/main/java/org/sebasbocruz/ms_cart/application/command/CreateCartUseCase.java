@@ -18,7 +18,7 @@ public class CreateCartUseCase {
 
     public CartDTO createCart(CartDTO carDTO){
 
-        Optional<Cart> cart = cartCommandsGateway.findByUserIdAndState(carDTO.getUserID(), CartState.OPEN);
+        Optional<Cart> cart = cartCommandsGateway.findCartByUserIdAndState(carDTO.getUserID(), CartState.OPEN);
 
         if(cart.isPresent()){
             throw new IllegalArgumentException("You can NOT create a new car since the user already has a car created");

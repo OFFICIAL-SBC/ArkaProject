@@ -2,6 +2,7 @@ package org.sebasbocruz.ms_cart.infrastructure.entrypoints.controllers.commands;
 
 import lombok.RequiredArgsConstructor;
 import org.sebasbocruz.ms_cart.application.command.AddItemToExistingCartUseCase;
+import org.sebasbocruz.ms_cart.application.command.ChangeItemQuantityUseCase;
 import org.sebasbocruz.ms_cart.application.command.CreateCartUseCase;
 import org.sebasbocruz.ms_cart.application.command.DeleteItemFromExistingCartUseCase;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.CartDTO;
@@ -53,7 +54,8 @@ public class CartCommandController {
 
     @PutMapping("/item/{cart_id}")
     public ResponseEntity<LineDTO> changeItemQuantity(@PathVariable Long cart_id, @RequestBody QueryProductDTO productData){
-
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(changeItemQuantityUseCase.changeItemQuantity(cart_id,productData.getProduct_id(),productData.getQuantity()));
     }
 
 }

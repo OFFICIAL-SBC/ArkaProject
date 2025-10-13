@@ -23,7 +23,7 @@ public class DeleteItemFromExistingCartUseCase {
             long cart_id,
             long product_id
     ){
-        Cart cartFound = cartCommandsGateway.finCartById(new CartId(cart_id)).orElseThrow(
+        Cart cartFound = cartCommandsGateway.findCartById(new CartId(cart_id)).orElseThrow(
                 () -> new EntityNotFoundException("The cart with ID "+cart_id+"Does not exist")
         );
 

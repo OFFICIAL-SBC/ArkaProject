@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CartState;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CurrencyCode;
-import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.*;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children.*;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.CartLine;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.CartId;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.UserId;
@@ -14,7 +14,6 @@ import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductPrice;
 
 
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,11 +51,11 @@ public class Cart {
         domainEvents.add(new CartItemAdded(id.value(), productId.value(), quantity));
     }
 
-    public void changeItemQuantity(ProductId productId, int quantity, ProductPrice price) {
+    public void changeItemQuantity(ProductId productId,int currentQuantity, int newQuantity, ProductPrice price) {
         ensureCartIsOpen();
         if (!lines.containsKey(productId)) throw new IllegalStateException("Item not in cart");
-        lines.put(productId, lines.get(productId).withQuantity(quantity, quantity*price.value()));
-        domainEvents.add(new CartItemQuantityChanged(id.value(), productId.value(), quantity));
+        lines.put(productId, lines.get(productId).withQuantity(newQuantity, newQuantity*price.value()));
+        domainEvents.add(new CartItemQuantityChanged(id.value(), productId.value(), newQuantity - currentQuantity));
     }
 
     public CartLine removeItem(ProductId productId) {

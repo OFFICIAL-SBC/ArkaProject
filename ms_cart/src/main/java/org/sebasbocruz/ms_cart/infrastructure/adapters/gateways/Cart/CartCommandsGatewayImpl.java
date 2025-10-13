@@ -62,12 +62,12 @@ public class CartCommandsGatewayImpl implements CartCommandsGateway {
 
 
     @Override
-    public Optional<Cart> findByUserIdAndState(Long user_id, CartState cartState){
+    public Optional<Cart> findCartByUserIdAndState(Long user_id, CartState cartState){
         return cartRepository.findByUserEntity_IdAndCartState_CartState(user_id, cartState).map(CartMapper::fromInfrastructureToDomain);
     }
 
     @Override
-    public Optional<Cart> finCartById(CartId id) {
+    public Optional<Cart> findCartById(CartId id) {
         return cartRepository.findById(id.value()).map(CartMapper::fromInfrastructureToDomain);
     }
 

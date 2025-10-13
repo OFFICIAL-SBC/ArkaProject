@@ -13,8 +13,8 @@ import java.util.Optional;
 
 public interface CartCommandsGateway {
     Cart createNewCart(CartDTO cartDTO);
-    Optional<Cart> findByUserIdAndState(Long user_id, CartState cartState);
-    Optional<Cart> finCartById(CartId id) ;
+    Optional<Cart> findCartByUserIdAndState(Long user_id, CartState cartState);
+    Optional<Cart> findCartById(CartId id) ;
     Cart save(Cart cartDomain);
     Map<Long, ProductEntity> fetchProductsById(List<LineDTO> lines);
 }

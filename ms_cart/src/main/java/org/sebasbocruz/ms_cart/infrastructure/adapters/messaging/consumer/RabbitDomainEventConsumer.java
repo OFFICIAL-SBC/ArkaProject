@@ -1,7 +1,8 @@
 package org.sebasbocruz.ms_cart.infrastructure.adapters.messaging.consumer;
 
 import lombok.RequiredArgsConstructor;
-import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.CartOpened;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartItemEvent;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children.CartOpened;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.in.DomainEventConsumer;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -15,10 +16,12 @@ public class RabbitDomainEventConsumer implements DomainEventConsumer {
     private static final Logger LOGGER = LoggerFactory.getLogger(RabbitDomainEventConsumer.class);
 
     @Override
-    @RabbitListener(queues = "cart.event.queue")
-    public Object consume(CartOpened cartOpened) {
+    @RabbitListener(
+            queues = "cart.inventory.queue"
+    )
+    public Object consume(CartItemEvent cartItemEvent) {
 
-        LOGGER.warn("Message received {}", cartOpened.toString());
+        LOGGER.warn("Message received from Queue Consumer {}", cartItemEvent.toString());
 
         return null;
     }
