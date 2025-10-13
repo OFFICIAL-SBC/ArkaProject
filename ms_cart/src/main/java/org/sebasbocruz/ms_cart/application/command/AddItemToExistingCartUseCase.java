@@ -45,17 +45,11 @@ public class AddItemToExistingCartUseCase {
         }
 
         Cart cart = cartCommandsGateway.findCartById(new CartId(cart_id))
-                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Cart not found in the database"));
 
         Product product = catalogQuery.getProduct(newLine.getProductId())
-                .orElseThrow(() -> new EntityNotFoundException("Product " + newLine.getProductName()+ " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Product " + newLine.getProductName()+ " not found in the inventory"));
 
-
-        CartLine lineToAdd = cart.getLines().get(product.getId());
-
-        if (lineToAdd == null) {
-            throw new IllegalArgumentException("Cart line not found for product " + product.getId().value());
-        }
 
         domainService.addWithPolicy(
                 cart,
@@ -65,9 +59,11 @@ public class AddItemToExistingCartUseCase {
                 product.getPrice()
         );
 
-        cartCommandsGateway.save(cart);
+        Cart carFound = cartCommandsGateway.save(cart);
 
         cart.getDomainEvents().forEach(publisher::publish);
+
+        CartLine lineToAdd = carFound.getLines().get(product.getId());
 
         int qtySaved = lineToAdd.quantity();
         double subtotal = lineToAdd.subtotal();

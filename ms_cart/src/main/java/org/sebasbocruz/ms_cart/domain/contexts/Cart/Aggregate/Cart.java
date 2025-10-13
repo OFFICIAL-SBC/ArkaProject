@@ -76,6 +76,12 @@ public class Cart {
         domainEvents.add(new CartCancelled(id.value(), reason));
     }
 
+    public void abandoned() {
+        ensureCartIsOpen();
+        this.state = CartState.ABANDONED;
+        domainEvents.add(new CartAbandoned(id.value()));
+    }
+
     public void convertToOrder(String orderId) {
         ensureCartIsOpen();
         this.state = CartState.CONVERTED;
