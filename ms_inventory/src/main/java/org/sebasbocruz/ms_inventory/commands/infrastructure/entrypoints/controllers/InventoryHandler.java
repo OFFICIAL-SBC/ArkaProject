@@ -1,5 +1,7 @@
 package org.sebasbocruz.ms_inventory.commands.infrastructure.entrypoints.controllers;
 
+import lombok.RequiredArgsConstructor;
+import org.sebasbocruz.ms_inventory.commands.application.GetProductsToBeSuppliedUseCase;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Component;
@@ -12,7 +14,10 @@ import java.time.Duration;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class InventoryHandler {
+
+    private final GetProductsToBeSuppliedUseCase getProductsToBeSuppliedUseCase;
 
     public Mono<ServerResponse> getInventory(ServerRequest request) {
         List<String> inventoryItems = List.of("item1", "item2", "item3");
@@ -31,6 +36,12 @@ public class InventoryHandler {
         return ServerResponse.ok()
                 .contentType(MediaType.TEXT_EVENT_STREAM)
                 .body(events, ServerSentEvent.class);
+    }
+
+    public Mono<ServerResponse> getProductsToBeSupplied(ServerRequest request) {
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(getProductsToBeSuppliedUseCase.getProductsToBeSupplied(), Object.class);
     }
 
 

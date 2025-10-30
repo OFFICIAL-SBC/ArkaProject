@@ -16,6 +16,7 @@ public class InventoryRouter {
         return RouterFunctions.route().
                 GET("/api/v1/inventory", inventoryHandler::getInventory)
                 .GET("/api/v1/inventory/stream", inventoryHandler::streamEvents)
+                .GET("/api/v1/inventory/products-to-be-supplied", inventoryHandler::getProductsToBeSupplied)
                 .build();
     }
 

@@ -102,15 +102,6 @@ CHECK (
 );
 
 
-CREATE TABLE IF NOT EXISTS inventory.inventory(
-	inventory_id BIGSERIAL PRIMARY KEY,
-	product_id  SERIAL NOT NULL REFERENCES product.product(product_id),
-	phone VARCHAR(30) NOT NULL,
-	email_billing VARCHAR(30) NOT NULL,
-	created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
 CREATE TABLE IF NOT EXISTS inventory.inventory (
     inventory_id BIGSERIAL PRIMARY KEY,
     product_id  SERIAL NOT NULL REFERENCES product.product(product_id)
