@@ -14,6 +14,7 @@ public class QueryInventoryRouter {
         return RouterFunctions
                 .route()
                 .GET("/api/v1/inventory/products-to-be-supplied", queryInventoryHandler::getProductsToBeSupplied)
+                .GET("/api/v1/inventory/report/pdf", queryInventoryHandler::generatePdfReport)
                 .build();
     }
 }
