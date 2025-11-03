@@ -5,12 +5,8 @@ import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Flux;
 
-public interface InventoryRepository extends R2dbcRepository<InventoryEntity, Long> {
+public interface InventoryRepositoryCommands extends R2dbcRepository<InventoryEntity, Long> {
 
-    @Query(
-        "SELECT * FROM inventory.inventory " +
-        "WHERE availablestock < thresholdstock"
-    )
-    Flux<InventoryEntity> getProductsThatStockIsBelowThreshold();
+
 
 }

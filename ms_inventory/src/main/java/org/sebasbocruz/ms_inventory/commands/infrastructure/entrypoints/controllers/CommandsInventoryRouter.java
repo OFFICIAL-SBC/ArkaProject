@@ -5,18 +5,16 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 
 @Configuration
-public class InventoryRouter {
+public class CommandsInventoryRouter {
 
     @Bean
-    public RouterFunction<ServerResponse> inventoryRoutes(InventoryHandler inventoryHandler){
+    public RouterFunction<ServerResponse> inventoryRoutes(CommandsInventoryHandler inventoryHandler){
         return RouterFunctions.route().
-                GET("/api/v1/inventory", inventoryHandler::getInventory)
-                .GET("/api/v1/inventory/stream", inventoryHandler::streamEvents)
-                .GET("/api/v1/inventory/products-to-be-supplied", inventoryHandler::getProductsToBeSupplied)
+                POST("/api/v1/inventory", inventoryHandler::getInventory)
+                .POST("/api/v1/inventory/stream", inventoryHandler::streamEvents)
                 .build();
     }
 

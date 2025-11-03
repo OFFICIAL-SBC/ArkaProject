@@ -117,6 +117,14 @@ CREATE TABLE IF NOT EXISTS inventory.inventory (
     CONSTRAINT uq_product_warehouse UNIQUE (product_id, warehouse_id)
 );
 -- ============================================================================
+
+UPDATE inventory.inventory
+SET availableStock = 25
+WHERE inventory_id = 2;
+
+SELECT * G
+
+
 -- ============================================================================
 -- Filling the tables with dummy data
 -- ============================================================================
@@ -215,7 +223,22 @@ VALUES
  SELECT pg_get_serial_sequence('inventory.inventory', 'inventory_id');
 
  SELECT * FROM inventory.inventory;
+ SELECT * FROM inventory.inventory WHERE availablestock < thresholdstock;
 
 DELETE FROM inventory.inventory;
 ALTER SEQUENCE inventory.inventory_inventory_id_seq RESTART WITH 1;
-  
+
+
+-- =============================================================================
+-- Queries
+-- =============================================================================
+
+
+-- inventory.inventory
+ SELECT * FROM inventory.inventory;
+ SELECT * FROM inventory.inventory WHERE availablestock < thresholdstock;
+
+
+
+ -- inventory.warehouse
+   SELECT * FROM inventory.warehouse;

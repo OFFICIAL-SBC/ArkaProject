@@ -27,10 +27,10 @@ public class InventoryEntity {
     @Column("warehouse_id")
     private Long warehouseId;
 
-    @Column("available_stock")
+    @Column("availablestock")
     private Integer availableStock;
 
-    @Column("threshold_stock")
+    @Column("thresholdstock")
     private Integer thresholdStock;
 
     @CreatedDate

@@ -1,7 +1,8 @@
 package org.sebasbocruz.ms_inventory.commands.infrastructure.entrypoints.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.sebasbocruz.ms_inventory.commands.application.GetProductsToBeSuppliedUseCase;
+import org.sebasbocruz.ms_inventory.queries.application.GetProductsToBeSuppliedUseCase;
+import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Aggregate.Inventory;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class InventoryHandler {
+public class CommandsInventoryHandler {
 
     private final GetProductsToBeSuppliedUseCase getProductsToBeSuppliedUseCase;
 
@@ -41,7 +42,7 @@ public class InventoryHandler {
     public Mono<ServerResponse> getProductsToBeSupplied(ServerRequest request) {
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(getProductsToBeSuppliedUseCase.getProductsToBeSupplied(), Object.class);
+                .body(getProductsToBeSuppliedUseCase.getProductsToBeSupplied(), Inventory.class);
     }
 
 

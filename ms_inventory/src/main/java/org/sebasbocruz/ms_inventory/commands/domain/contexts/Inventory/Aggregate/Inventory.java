@@ -17,17 +17,17 @@ public class Inventory {
     private final Long productId;
     private final Long warehouseId; // or WarehouseId VO if you model it here
     private Quantity available;
-    private int threshold;
+    private Quantity threshold;
     private final Instant createdAt;
     private Instant updatedAt;
 
     public Inventory(Long id, Long productId, Long warehouseId,
-                     Quantity available, int threshold) {
+                     Quantity available, Quantity threshold) {
         this.id = Objects.requireNonNull(id);
         this.productId = Objects.requireNonNull(productId);
         this.warehouseId = Objects.requireNonNull(warehouseId);
         this.available = Objects.requireNonNull(available);
-        this.threshold = threshold;
+        this.threshold = Objects.requireNonNull(threshold);
         this.createdAt = Instant.now();
         this.updatedAt = createdAt;
     }
@@ -39,6 +39,6 @@ public class Inventory {
                 : available.subtract(amount);
     }
 
-    public boolean isBelowThreshold() { return available.value() < threshold; }
+    public boolean isBelowThreshold() { return available.value() < threshold.value(); }
 
 }
