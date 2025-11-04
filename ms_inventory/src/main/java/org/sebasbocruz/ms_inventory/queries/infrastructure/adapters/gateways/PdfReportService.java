@@ -1,6 +1,6 @@
 package org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.gateways;
 
-import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.dtos.InventoryDTO;
+import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.dtos.InventoryDTOquery;
 import org.springframework.stereotype.Service;
 
 import com.lowagie.text.*;
@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 @Service
 public class PdfReportService {
 
-    public byte[] generateInventoryReport(List<InventoryDTO> items) {
+    public byte[] generateInventoryReport(List<InventoryDTOquery> items) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4);
             PdfWriter.getInstance(document, out);
@@ -49,8 +49,8 @@ public class PdfReportService {
                 });
     }
 
-    private void addRows(PdfPTable table, List<InventoryDTO> items) {
-        for (InventoryDTO item : items) {
+    private void addRows(PdfPTable table, List<InventoryDTOquery> items) {
+        for (InventoryDTOquery item : items) {
             table.addCell(String.valueOf(item.getProductId()));
             table.addCell(item.getWarehouseName());
             table.addCell(String.valueOf(item.getAvailableStock()));

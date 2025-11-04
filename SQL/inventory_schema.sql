@@ -10,6 +10,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA inventory TO app_ow
 GRANT USAGE ON SCHEMA supply TO app_owner; -- I already did this ✅
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA supply TO app_owner; -- I already did this ✅
 
+GRANT USAGE ON SCHEMA public TO app_owner; -- I already did this ✅
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_owner; -- I already did this ✅
+
 -- =============================================================================
 -- Public Schema
 -- =============================================================================
@@ -121,8 +124,6 @@ CREATE TABLE IF NOT EXISTS inventory.inventory (
 UPDATE inventory.inventory
 SET availableStock = 25
 WHERE inventory_id = 2;
-
-SELECT * G
 
 
 -- ============================================================================

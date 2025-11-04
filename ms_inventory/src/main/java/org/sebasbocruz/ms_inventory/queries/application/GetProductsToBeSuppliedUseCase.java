@@ -1,9 +1,8 @@
 package org.sebasbocruz.ms_inventory.queries.application;
 
-import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Aggregate.Inventory;
-import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.gateway.CommandsInventoryGateway;
+
 import org.sebasbocruz.ms_inventory.queries.domain.gateways.QueryInventoryGateway;
-import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.dtos.InventoryDTO;
+import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.dtos.InventoryDTOquery;
 import reactor.core.publisher.Flux;
 
 
@@ -15,7 +14,7 @@ public class GetProductsToBeSuppliedUseCase{
         this.inventoryGateway = inventoryGateway;
     }
 
-    public Flux<InventoryDTO> getProductsToBeSupplied() {
+    public Flux<InventoryDTOquery> getProductsToBeSupplied() {
         return inventoryGateway.getProductsToBeSupplied();
     }
 

@@ -1,10 +1,10 @@
 package org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.gateways;
 
-import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.inventory.AddressEntity;
+import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.publics.AddressEntity;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.inventory.WarehouseEntity;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.product.ProductEntity;
 import org.sebasbocruz.ms_inventory.queries.domain.gateways.QueryInventoryGateway;
-import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.dtos.InventoryDTO;
+import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.dtos.InventoryDTOquery;
 import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.mappers.QueryInventoryMapper;
 import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.repositories.QueryAddressRepository;
 import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.repositories.QueryInventoryRepository;
@@ -34,7 +34,7 @@ public class QueryInventoryGatewayImpl implements QueryInventoryGateway {
     }
 
     @Override
-    public Flux<InventoryDTO> getProductsToBeSupplied() {
+    public Flux<InventoryDTOquery> getProductsToBeSupplied() {
         return inventoryRepository.getProductsThatStockIsBelowThreshold() // Flux<InventoryEntity>
                 .flatMap(inventoryEntity ->
                                 Mono.zip(

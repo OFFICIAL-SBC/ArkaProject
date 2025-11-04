@@ -13,8 +13,7 @@ public class CommandsInventoryRouter {
     @Bean
     public RouterFunction<ServerResponse> inventoryRoutes(CommandsInventoryHandler inventoryHandler){
         return RouterFunctions.route().
-                POST("/api/v1/inventory", inventoryHandler::getInventory)
-                .POST("/api/v1/inventory/stream", inventoryHandler::streamEvents)
+                POST("/api/v1/product/register", inventoryHandler::registerNewProduct)
                 .build();
     }
 

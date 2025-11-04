@@ -7,7 +7,7 @@ import java.time.Instant;
 
 @Data
 @AllArgsConstructor
-public class InventoryDTO {
+public class InventoryDTOquery {
     private Long id;
     private Long productId;
     private String productName;

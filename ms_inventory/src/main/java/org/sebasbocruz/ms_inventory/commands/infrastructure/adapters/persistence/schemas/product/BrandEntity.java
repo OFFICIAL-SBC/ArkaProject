@@ -1,6 +1,5 @@
 package org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.product;
 
-
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -11,28 +10,12 @@ import org.springframework.data.relational.core.mapping.Table;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table("product.product")
-public class ProductEntity {
-
+@Table("product.brand ")
+public class BrandEntity {
     @Id
-    @Column("product_id")
-    private Long productId;
-
     @Column("brand_id")
     private Long brandId;
 
-    @Column("category_id")
-    private Long categoryId;
-
     @Column("name")
     private String name;
-
-    @Column("description")
-    private String description;
-
-    @Column("price")
-    private double price;
-
-    @Column("discount")
-    private double discount;
 }

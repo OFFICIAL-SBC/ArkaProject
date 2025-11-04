@@ -1,4 +1,4 @@
-package org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.inventory;
+package org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.product;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -10,12 +10,12 @@ import org.springframework.data.relational.core.mapping.Table;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table("public.address")
-public class AddressEntity {
+@Table("product.category ")
+public class CategoryEntity {
     @Id
-    @Column("address_id")
-    private Long addressId;
+    @Column("category_id")
+    private Long categoryId;
 
-    @Column("address")
-    private String address;
+    @Column("name")
+    private String name;
 }

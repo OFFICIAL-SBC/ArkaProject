@@ -16,7 +16,7 @@ public class Product {
     private String name;
     private String description;
     private double price;
-    private double discount; // 0..1 or absolute — choose one and document
+    private double discount;
     private Instant createdAt;
     private Instant updatedAt;
 

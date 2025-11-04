@@ -1,8 +1,11 @@
 package org.sebasbocruz.ms_inventory.commands.infrastructure.entrypoints.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.sebasbocruz.ms_inventory.queries.application.GetProductsToBeSuppliedUseCase;
-import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Aggregate.Inventory;
+
+
+import org.sebasbocruz.ms_inventory.commands.application.RegisterNewProductInTheSystemUseCase;
+import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.dtos.InventoryDTOcommands;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Component;
@@ -18,31 +21,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommandsInventoryHandler {
 
-    private final GetProductsToBeSuppliedUseCase getProductsToBeSuppliedUseCase;
+    private final RegisterNewProductInTheSystemUseCase registerNewProductInTheSystemUseCase;
 
-    public Mono<ServerResponse> getInventory(ServerRequest request) {
-        List<String> inventoryItems = List.of("item1", "item2", "item3");
-        Flux<String> inventoryFlux = Flux.fromIterable(inventoryItems);
-
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(inventoryFlux, String.class);
-    }
-
-    public Mono<ServerResponse> streamEvents(ServerRequest req) {
-        Flux<ServerSentEvent<String>> events =
-                Flux.interval(Duration.ofSeconds(1))
-                        .map(seq -> ServerSentEvent.builder("Evento #" + seq).build());
-
-        return ServerResponse.ok()
-                .contentType(MediaType.TEXT_EVENT_STREAM)
-                .body(events, ServerSentEvent.class);
-    }
-
-    public Mono<ServerResponse> getProductsToBeSupplied(ServerRequest request) {
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(getProductsToBeSuppliedUseCase.getProductsToBeSupplied(), Inventory.class);
+    Mono<ServerResponse> registerNewProduct(ServerRequest request){
+        return request.bodyToMono(InventoryDTOcommands.class)
+                .flatMap(registerNewProductInTheSystemUseCase::registerNewProduct)
+                .flatMap(inventoryDTOCommandsResponse ->
+                        ServerResponse.status(HttpStatus.CREATED)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(inventoryDTOCommandsResponse)
+                );
     }
 
 
