@@ -79,6 +79,7 @@ INSERT INTO product.category (name) VALUES
 
 SELECT * FROM product.product;
 
+DELETE FROM product.product WHERE product_id = 8;
 
 TRUNCATE TABLE product.category RESTART IDENTITY CASCADE;
 SELECT * FROM product.category;
@@ -95,6 +96,8 @@ INSERT INTO product.brand (name) VALUES
 ('MSI');
 
 SELECT * FROM product.brand;
+SELECT * FROM product.category;
+SELECT * FROM product.product;
 
 -- =========================================
 -- 3. Products

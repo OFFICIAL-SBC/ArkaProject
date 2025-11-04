@@ -11,6 +11,10 @@ CREATE SCHEMA IF NOT EXISTS cart;
 GRANT USAGE ON SCHEMA public TO app_owner;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_owner;
 
+GRANT USAGE, SELECT, UPDATE ON SEQUENCE product.product_product_id_seq TO app_owner;
+
+SHOW search_path;
+
 -- =============================
 -- ENUMS
 -- =============================
