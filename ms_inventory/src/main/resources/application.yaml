@@ -8,3 +8,13 @@ spring:
     url: r2dbc:postgresql://localhost:5432/arkaproject
     username: app_owner
     password: Geco1964Cata18
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+inventory:
+  rabbitmq:
+    queue: "cart.inventory.queue"
