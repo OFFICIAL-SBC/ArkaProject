@@ -17,7 +17,7 @@ public class RabbitDomainEventConsumer implements DomainEventConsumer {
 
     @Override
     @RabbitListener(
-            queues = "cart.inventory.queue"
+            queues = "cart.notifications.queue"
     )
     public Object consume(CartItemEvent cartItemEvent) {
 

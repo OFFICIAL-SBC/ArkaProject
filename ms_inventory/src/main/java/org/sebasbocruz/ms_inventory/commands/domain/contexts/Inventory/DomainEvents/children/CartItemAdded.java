@@ -2,7 +2,5 @@ package org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.DomainEv
 
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.DomainEvents.parents.CartItemEvent;
 
-;
-
 public record CartItemAdded(Long cartId, Long productId, int quantity) implements CartItemEvent {
 }
