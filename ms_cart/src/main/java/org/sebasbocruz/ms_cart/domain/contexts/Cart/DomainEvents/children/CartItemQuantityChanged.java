@@ -5,9 +5,6 @@ import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartIte
 public class CartItemQuantityChanged extends CartItemEvent {
 
     public CartItemQuantityChanged(Long cartId, Long productId, int quantity){
-        super();
-        this.setCartId(cartId);
-        this.setProductId(productId);
-        this.setQuantity(quantity);
+        super(cartId, productId, quantity);
     }
 }

@@ -1,4 +1,9 @@
 package org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children;
 
-public record CartConverted(Long cartId, String orderId) {
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartItemEvent;
+
+public class CartConverted extends CartItemEvent{
+    public CartConverted(Long cartId, String orderId){
+        super(cartId,orderId);
+    }
 }

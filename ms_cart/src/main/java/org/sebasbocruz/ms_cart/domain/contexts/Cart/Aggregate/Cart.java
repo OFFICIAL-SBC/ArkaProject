@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CartState;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CurrencyCode;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartItemEvent;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children.*;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.CartLine;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.CartId;
@@ -29,7 +30,7 @@ public class Cart {
     private CartState state;
     private CurrencyCode currency;
     private final LinkedHashMap<ProductId, CartLine> lines = new LinkedHashMap<>();
-    private final List<Object> domainEvents = new ArrayList<>();
+    private final List<CartItemEvent> domainEvents = new ArrayList<>();
 
 
     public Cart(CartId id, UserId userId, CurrencyCode currency, CartState state, Map<ProductId, CartLine> lines) {
@@ -76,10 +77,10 @@ public class Cart {
         domainEvents.add(new CartCancelled(id.value(), reason));
     }
 
-    public void abandoned() {
+    public void abandoned(String reason) {
         ensureCartIsOpen();
         this.state = CartState.ABANDONED;
-        domainEvents.add(new CartAbandoned(id.value()));
+        domainEvents.add(new CartAbandoned(id.value(),reason));
     }
 
     public void convertToOrder(String orderId) {
@@ -92,7 +93,7 @@ public class Cart {
         if (state != CartState.OPEN) throw new IllegalStateException("Cart is not OPEN");
     }
 
-    public List<Object> pullDomainEvents() {
+    public List<CartItemEvent> pullDomainEvents() {
         var copy = List.copyOf(domainEvents);
         domainEvents.clear();
         return copy;
