@@ -3,6 +3,7 @@ package org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.messaging.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.sebasbocruz.ms_inventory.commands.application.CartItemAddedToCartUseCase;
+import org.sebasbocruz.ms_inventory.commands.application.CartQuantityItemChangedUseCase;
 import org.sebasbocruz.ms_inventory.commands.application.RemoveItemFromCartUseCase;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.DomainEvents.children.CartItemAdded;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.DomainEvents.children.CartItemQuantityChanged;
@@ -23,6 +24,7 @@ public class InventoryEventConsumer {
     private final ObjectMapper objectMapper;
     private final CartItemAddedToCartUseCase cartItemAddedToCartUseCase;
     private final RemoveItemFromCartUseCase removeItemFromCartUseCase;
+    private final CartQuantityItemChangedUseCase cartQuantityItemChangedUseCase;
 
     @RabbitListener(queues = "${inventory.rabbitmq.queue}")
     public void consumeInventoryEvents(String json) {
@@ -41,16 +43,10 @@ public class InventoryEventConsumer {
                     cartItemAddedToCartUseCase.execute(event.getCartId(), event.getProductId(), event.getQuantity()).block();
                     break;
                 case "cart.item.quantity.changed":
-                    removeItemFromCartUseCase .execute(event.getCartId(), event.getProductId(), event.getQuantity()).block();
+                    cartQuantityItemChangedUseCase.execute(event.getCartId(), event.getProductId(), event.getQuantity()).block();
                     break;
                 case "cart.item.removed":
-                    CartItemRemoved itemRemoved = new CartItemRemoved(
-                            event.getCartId(),
-                            event.getProductId(),
-                            event.getQuantity()
-                    );
-                    logger.info("Consumed CartItemRemoved event: {}", itemRemoved);
-                    // Process the event (e.g., update inventory)
+                    removeItemFromCartUseCase .execute(event.getCartId(), event.getProductId(), event.getQuantity()).block();
                     break;
                 default:
                     logger.warn("Unknown event type: {}", event.getEventType());
