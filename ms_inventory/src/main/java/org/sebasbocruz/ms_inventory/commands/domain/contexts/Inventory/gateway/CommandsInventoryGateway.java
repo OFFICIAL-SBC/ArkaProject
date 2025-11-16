@@ -16,4 +16,9 @@ public interface CommandsInventoryGateway {
     Mono<Boolean> doesBrandExist(Long brandId);
     Mono<Boolean> doesCategoryExist(Long categoryId);
 
+    Mono<Void> handleCartItemAddedToCart(Long cartId, Long productId, int quantity);
+
+    Mono<Void> handleRemoveItemFromCart(Long cartId, Long productId, int quantity);
+
+    Mono<Void> handleCartQuantityItemChanged(Long cartId, Long productId, int quantity);
 }

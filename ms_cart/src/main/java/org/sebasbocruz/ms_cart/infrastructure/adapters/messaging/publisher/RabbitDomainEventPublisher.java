@@ -38,10 +38,6 @@ public class RabbitDomainEventPublisher implements DomainEventPublisher {
         try{
 
             String json = objectMapper.writeValueAsString(inventoryEventDTO);
-
-            logger.warn("This is the Routing Key of the event {}", rk);
-            logger.warn(inventoryEventDTO.toString());
-
             amqp.convertAndSend(RabbitConfig.EXCHANGE, rk, json);
 
         }catch (Exception e){

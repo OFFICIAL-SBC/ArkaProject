@@ -2,6 +2,8 @@ package org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.messaging.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.sebasbocruz.ms_inventory.commands.application.CartItemAddedToCartUseCase;
+import org.sebasbocruz.ms_inventory.commands.application.RemoveItemFromCartUseCase;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.DomainEvents.children.CartItemAdded;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.DomainEvents.children.CartItemQuantityChanged;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.DomainEvents.children.CartItemRemoved;
@@ -19,6 +21,8 @@ public class InventoryEventConsumer {
     private Logger logger = LoggerFactory.getLogger(InventoryEventConsumer.class);
 
     private final ObjectMapper objectMapper;
+    private final CartItemAddedToCartUseCase cartItemAddedToCartUseCase;
+    private final RemoveItemFromCartUseCase removeItemFromCartUseCase;
 
     @RabbitListener(queues = "${inventory.rabbitmq.queue}")
     public void consumeInventoryEvents(String json) {
@@ -30,9 +34,27 @@ public class InventoryEventConsumer {
             // Then deserialize the actual event
             InventoryEventDTO event = objectMapper.readValue(innerJson, InventoryEventDTO.class);
 
-            System.out.println("✅ Received and deserialized event: " + event);
+            logger.warn("Received event: {}", event);
 
-            // TODO: call your use case or business logic here
+            switch (event.getEventType()){
+                case "cart.item.added":
+                    cartItemAddedToCartUseCase.execute(event.getCartId(), event.getProductId(), event.getQuantity()).block();
+                    break;
+                case "cart.item.quantity.changed":
+                    removeItemFromCartUseCase .execute(event.getCartId(), event.getProductId(), event.getQuantity()).block();
+                    break;
+                case "cart.item.removed":
+                    CartItemRemoved itemRemoved = new CartItemRemoved(
+                            event.getCartId(),
+                            event.getProductId(),
+                            event.getQuantity()
+                    );
+                    logger.info("Consumed CartItemRemoved event: {}", itemRemoved);
+                    // Process the event (e.g., update inventory)
+                    break;
+                default:
+                    logger.warn("Unknown event type: {}", event.getEventType());
+            }
 
         } catch (Exception e) {
             logger.error("Error processing event: {}", e.getMessage());

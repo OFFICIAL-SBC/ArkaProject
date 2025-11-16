@@ -8,13 +8,10 @@ import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.CartId;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.commands.CartCommandsGateway;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.out.DomainEventPublisher;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductId;
-import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.entities.Product;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.gateway.CatalogQuery;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.LineDTO;
-import org.sebasbocruz.ms_cart.infrastructure.adapters.persistence.dtos.QueryProductDTO;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RequiredArgsConstructor
 public class ChangeItemQuantityUseCase {

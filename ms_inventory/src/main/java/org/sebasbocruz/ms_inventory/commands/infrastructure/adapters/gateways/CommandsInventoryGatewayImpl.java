@@ -22,6 +22,8 @@ import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.repositorie
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.rmi.NoSuchObjectException;
+
 @RequiredArgsConstructor
 @Service
 public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
@@ -104,18 +106,58 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                 );
     }
 
+    @Override
+    public Mono<Void> handleCartItemAddedToCart(Long cartId, Long productId, int quantity) {
+        return inventoryRepository.findInventoryEntityByProductId(productId)
+                .switchIfEmpty(Mono.error(new NoSuchObjectException("Product with ID " + productId + " not found in any Warehouse.")))
+                .flatMap(inventoryEntity -> {
+                    int updatedStock = inventoryEntity.getAvailableStock() - quantity;
+                    inventoryEntity.setAvailableStock(updatedStock);
+                    return inventoryRepository.save(inventoryEntity);
+                })
+                .then();
+    }
+
+    @Override
+    public Mono<Void> handleRemoveItemFromCart(Long cartId, Long productId, int quantity) {
+        return inventoryRepository.findInventoryEntityByProductId(productId)
+                .switchIfEmpty(Mono.error(new NoSuchObjectException("Product with ID " + productId + " not found in any Warehouse.")))
+                .flatMap(inventoryEntity -> {
+                    int updatedStock = inventoryEntity.getAvailableStock() + quantity;
+                    inventoryEntity.setAvailableStock(updatedStock);
+                    return inventoryRepository.save(inventoryEntity);
+                })
+                .then();
+    }
+
+    @Override
+    public Mono<Void> handleCartQuantityItemChanged(Long cartId, Long productId, int quantityDifference) {
+        return inventoryRepository.findInventoryEntityByProductId(productId)
+                .switchIfEmpty(Mono.error(new NoSuchObjectException("Product with ID " + productId + " not found in any Warehouse.")))
+                .flatMap(inventoryEntity -> {
+                    int updatedStock = inventoryEntity.getAvailableStock() - quantityDifference;
+                    inventoryEntity.setAvailableStock(updatedStock);
+                    return inventoryRepository.save(inventoryEntity);
+                })
+                .then();
+    }
+
+    @Override
     public Mono<Boolean> doesProductExistByName(String name) {
         return productRepository.existsByName(name);
     }
 
+    @Override
     public Mono<Boolean> doesProductExistById(Long product_id) {
         return productRepository.existsById(product_id);
     }
 
+    @Override
     public Mono<Boolean> doesBrandExist(Long brandId) {
         return brandRepository.existsById(brandId);
     }
 
+    @Override
     public Mono<Boolean> doesCategoryExist(Long categoryId) {
         return categoryRepository.existsById(categoryId);
     }

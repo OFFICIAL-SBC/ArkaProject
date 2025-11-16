@@ -29,7 +29,7 @@ public class CartDomainService {
            // ! If newQuantity > currentQuantity then the subtraction will be positive, meaning that I only need to
            // ! check if the inventory has available the difference between those 2 variables
            // ! If the subtraction is negative -> It means that there is more items in cart that what I actually need,
-           // ! so we should "RETURN" those remaining products to the inventory. Now, since Im always subtracting the amount
+           // ! so we should "RETURN" those remaining products to the inventory. Now, since I'm always subtracting the amount
            // ! sent though events, in this case this amount will be negative, the final result will be
            // ! inventory = currentAmountInventory - (newQuantity - currentQuantity)
 
