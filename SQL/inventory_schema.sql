@@ -13,6 +13,16 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA supply TO app_owner
 GRANT USAGE ON SCHEMA public TO app_owner; -- I already did this ✅
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_owner; -- I already did this ✅
 
+
+-- =================================================================================
+-- Granting secuence access to the app_owner 
+-- =================================================================================
+
+SELECT pg_get_serial_sequence('inventory.movement', 'movement_id'); -- I already did this ✅
+
+GRANT USAGE ON SEQUENCE inventory.movement_movement_id_seq TO app_owner; -- I already did this ✅
+GRANT SELECT, UPDATE ON SEQUENCE inventory.movement_movement_id_seq TO app_owner; -- I already did this ✅
+
 -- =============================================================================
 -- Public Schema
 -- =============================================================================
@@ -119,6 +129,34 @@ CREATE TABLE IF NOT EXISTS inventory.inventory (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_product_warehouse UNIQUE (product_id, warehouse_id)
 );
+
+-- =============================================================================
+-- Types
+-- =============================================================================
+
+CREATE TYPE inventory_movement AS ENUM ('ADD', 'SUBTRACT');
+CREATE TYPE inventory_movement_source AS ENUM ('CART', 'PROVIDER', 'RETURNED');
+
+CREATE TABLE IF NOT EXISTS inventory.movement(
+	movement_id BIGSERIAL PRIMARY KEY,
+	inventory_id BIGSERIAL NOT NULL REFERENCES inventory.inventory(inventory_id)
+		ON UPDATE CASCADE
+		ON DELETE RESTRICT,
+	movement_type VARCHAR(50) NOT NULL DEFAULT 'SUBTRACT',
+	reference_type VARCHAR(50) NOT NULL DEFAULT 'CART',
+	quantity INT NOT NULL DEFAULT 0,
+	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE inventory.movement
+    ALTER COLUMN created_at TYPE TIMESTAMPTZ USING created_at AT TIME ZONE 'UTC',
+    ALTER COLUMN updated_at TYPE TIMESTAMPTZ USING updated_at AT TIME ZONE 'UTC';
+
+
+SELECT* FROM inventory.movement;
+
 -- ============================================================================
 
 UPDATE inventory.inventory

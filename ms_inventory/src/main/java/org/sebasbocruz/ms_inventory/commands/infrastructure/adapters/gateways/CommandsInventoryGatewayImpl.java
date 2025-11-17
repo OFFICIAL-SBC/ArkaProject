@@ -1,6 +1,8 @@
 package org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.gateways;
 
 import lombok.RequiredArgsConstructor;
+import org.sebasbocruz.ms_inventory.commands.domain.commons.movement.MovementType;
+import org.sebasbocruz.ms_inventory.commands.domain.commons.reference.ReferenceType;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Aggregate.Inventory;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Entity.Warehouse;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.ValueObjects.Quantity;
@@ -8,9 +10,11 @@ import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.gateway.C
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.Mappers.CommandsProductMapper;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.dtos.InventoryDTOcommands;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.inventory.InventoryEntity;
+import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.inventory.MovementEntity;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.product.ProductEntity;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.publics.CityEntity;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.publics.CountryEntity;
+import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.repositories.schema.inventory.MovementRepositoryCommands;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.repositories.schema.publics.AddressRepositoryCommands;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.repositories.schema.inventory.InventoryRepositoryCommands;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.repositories.schema.product.BrandRepositoryCommands;
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.rmi.NoSuchObjectException;
+import java.time.Instant;
 
 @RequiredArgsConstructor
 @Service
@@ -36,6 +41,7 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
     private final AddressRepositoryCommands addressRepository;
     private final CityRepositoryCommands cityRepository;
     private final CountryRepositoryCommands countryRepository;
+    private final MovementRepositoryCommands movementRepository;
 
     private final CommandsProductMapper commandsProductMapper;
 
@@ -113,7 +119,17 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                 .flatMap(inventoryEntity -> {
                     int updatedStock = inventoryEntity.getAvailableStock() - quantity;
                     inventoryEntity.setAvailableStock(updatedStock);
-                    return inventoryRepository.save(inventoryEntity);
+                    return inventoryRepository.save(inventoryEntity).flatMap(savedEntity -> {
+                        // Optionally, log the movement
+                        return movementRepository.save(
+                                MovementEntity.builder()
+                                        .inventoryId(savedEntity.getInventoryId())
+                                        .movementType(MovementType.SUBTRACT.name())
+                                        .referenceType(ReferenceType.CART.name())
+                                        .quantity(quantity)
+                                        .build()
+                        );
+                    });
                 })
                 .then();
     }
@@ -125,7 +141,18 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                 .flatMap(inventoryEntity -> {
                     int updatedStock = inventoryEntity.getAvailableStock() + quantity;
                     inventoryEntity.setAvailableStock(updatedStock);
-                    return inventoryRepository.save(inventoryEntity);
+                    return inventoryRepository.save(inventoryEntity)
+                            .flatMap(savedEntity -> {
+                                // Optionally, log the movement
+                                return movementRepository.save(
+                                        MovementEntity.builder()
+                                                .inventoryId(savedEntity.getInventoryId())
+                                                .movementType(MovementType.ADD.name())
+                                                .referenceType(ReferenceType.CART.name())
+                                                .quantity(quantity)
+                                                .build()
+                                );
+                            });
                 })
                 .then();
     }
@@ -137,7 +164,18 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                 .flatMap(inventoryEntity -> {
                     int updatedStock = inventoryEntity.getAvailableStock() - quantityDifference;
                     inventoryEntity.setAvailableStock(updatedStock);
-                    return inventoryRepository.save(inventoryEntity);
+                    return inventoryRepository.save(inventoryEntity)
+                            .flatMap(savedEntity -> {
+                                // Optionally, log the movement
+                                return movementRepository.save(
+                                        MovementEntity.builder()
+                                                .inventoryId(savedEntity.getInventoryId())
+                                                .movementType(quantityDifference < 0 ? MovementType.ADD.name(): MovementType.SUBTRACT.name())
+                                                .referenceType(ReferenceType.CART.name())
+                                                .quantity(quantityDifference < 0 ? -quantityDifference : quantityDifference)
+                                                .build()
+                                );
+                            });
                 })
                 .then();
     }

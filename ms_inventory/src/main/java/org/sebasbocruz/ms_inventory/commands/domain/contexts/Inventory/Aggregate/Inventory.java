@@ -3,7 +3,7 @@ package org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Aggregat
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.sebasbocruz.ms_inventory.commands.domain.commons.MovementType;
+import org.sebasbocruz.ms_inventory.commands.domain.commons.movement.MovementType;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.ValueObjects.Quantity;
 
 import java.time.Instant;
@@ -34,7 +34,7 @@ public class Inventory {
 
     public void applyMovement(MovementType type, int amount) {
         if (amount <= 0) throw new IllegalArgumentException("amount must be > 0");
-        this.available = (type == MovementType.IN)
+        this.available = (type == MovementType.ADD)
                 ? available.add(amount)
                 : available.subtract(amount);
     }
