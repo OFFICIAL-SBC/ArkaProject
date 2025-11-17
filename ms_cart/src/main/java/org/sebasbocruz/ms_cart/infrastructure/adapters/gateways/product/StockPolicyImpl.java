@@ -9,6 +9,7 @@ public class StockPolicyImpl implements StockPolicy {
 
     @Override
     public boolean isAvailable(ProductId productId, int quantity) {
+
         return true;
     }
 

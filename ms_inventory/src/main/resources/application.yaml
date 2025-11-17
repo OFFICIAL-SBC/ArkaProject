@@ -15,13 +15,6 @@ spring:
     username: guest
     password: guest
 
-
-logging:
-  level:
-    org.springframework.r2dbc: DEBUG
-    io.r2dbc.postgresql: DEBUG
-    org.springframework.data.r2dbc: DEBUG
-
 inventory:
   rabbitmq:
     queue: "cart.inventory.queue"

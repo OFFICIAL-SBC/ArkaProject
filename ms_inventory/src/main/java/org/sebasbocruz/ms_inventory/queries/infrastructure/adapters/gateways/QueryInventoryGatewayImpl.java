@@ -5,6 +5,7 @@ import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.product.ProductEntity;
 import org.sebasbocruz.ms_inventory.queries.domain.gateways.QueryInventoryGateway;
 import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.dtos.InventoryDTOquery;
+import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.dtos.StockPolicyDTO;
 import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.mappers.QueryInventoryMapper;
 import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.repositories.QueryAddressRepository;
 import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.repositories.QueryInventoryRepository;
@@ -54,6 +55,16 @@ public class QueryInventoryGatewayImpl implements QueryInventoryGateway {
                 );
     }
 
+    @Override
+    public Mono<StockPolicyDTO> getAvailableInventoryPolicy(Long productId) {
+        return inventoryRepository.findInventoryEntityByProductId(productId)
+                .flatMap(inventoryEntity ->
+                        Mono.just(new StockPolicyDTO(inventoryEntity.getAvailableStock()))
+                )
+                .switchIfEmpty(Mono.error(new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Inventory policy not found for product id=" + productId
+                )));
+    }
 
     private Mono<ProductEntity>fetchProduct (Long productId) {
         return productRepository.findById(productId)

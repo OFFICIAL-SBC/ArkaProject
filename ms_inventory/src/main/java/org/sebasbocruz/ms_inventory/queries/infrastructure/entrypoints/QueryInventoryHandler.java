@@ -1,6 +1,7 @@
 package org.sebasbocruz.ms_inventory.queries.infrastructure.entrypoints;
 
 import lombok.RequiredArgsConstructor;
+import org.sebasbocruz.ms_inventory.queries.application.GetProductToBePurchasedUseCase;
 import org.sebasbocruz.ms_inventory.queries.application.GetProductsToBeSuppliedUseCase;
 import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.dtos.InventoryDTOquery;
 import org.sebasbocruz.ms_inventory.queries.infrastructure.adapters.gateways.PdfReportService;
@@ -15,6 +16,8 @@ import reactor.core.publisher.Mono;
 public class QueryInventoryHandler {
 
     private final GetProductsToBeSuppliedUseCase getProductsToBeSuppliedUseCase;
+    private final GetProductToBePurchasedUseCase getProductToBePurchasedUseCase;
+
     private final PdfReportService pdfReportService;
 
     Mono<ServerResponse> getProductsToBeSupplied(ServerRequest request) {
@@ -35,5 +38,16 @@ public class QueryInventoryHandler {
                                 .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
                                 .bodyValue(pdfBytes)
                 );
+    }
+
+    public Mono<ServerResponse> getAvailableInventoryPolicy(ServerRequest request) {
+        return getProductToBePurchasedUseCase.execute(request.queryParam("productId")
+                        .map(Long::parseLong)
+                        .orElseThrow(() -> new IllegalArgumentException("productId query parameter is required")))
+                        .flatMap(inventoryPolicyDTO ->
+                                ServerResponse.ok()
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .bodyValue(inventoryPolicyDTO)
+                        );
     }
 }
