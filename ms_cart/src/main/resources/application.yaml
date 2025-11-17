@@ -21,7 +21,7 @@ spring:
       username: guest
       password: guest
 
-logging:
-    level:
-        org.hibernate.SQL: DEBUG
-        org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#logging:
+#    level:
+#        org.hibernate.SQL: DEBUG
+#        org.hibernate.type.descriptor.sql.BasicBinder: TRACE

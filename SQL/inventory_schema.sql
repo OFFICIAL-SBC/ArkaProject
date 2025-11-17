@@ -280,4 +280,4 @@ ALTER SEQUENCE inventory.inventory_inventory_id_seq RESTART WITH 1;
 
 
  -- inventory.warehouse
-   SELECT * FROM inventory.warehouse;
+ SELECT * FROM inventory.warehouse;
