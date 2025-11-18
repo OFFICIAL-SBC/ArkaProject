@@ -36,18 +36,13 @@ public class RabbitConfig {
     Queue inventoryQueue(){
         return QueueBuilder.durable("cart.inventory.queue").build();
     }
-    @Bean
-    Queue ordersQueue(){
-        return QueueBuilder.durable("cart.orders.queue").build();
-    }
 
     @Bean
-    Queue notificationsQueue(){
-        return QueueBuilder.durable("cart.notifications.queue").build();
+    Queue cartSateChangeQueue(){
+        return QueueBuilder.durable("cart.state.change.queue").build();
     }
 
     // * Defining the Bindings
-
     // Inventory
     @Bean
     Binding invItems(TopicExchange cartExchange) {
@@ -55,27 +50,27 @@ public class RabbitConfig {
     }
     @Bean
     Binding invConverted(TopicExchange cartExchange) {
-        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.converted");
+        return BindingBuilder.bind(cartSateChangeQueue()).to(cartExchange).with("cart.converted");
     }
     @Bean
     Binding invCancelled(TopicExchange cartExchange) {
-        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.cancelled");
+        return BindingBuilder.bind(cartSateChangeQueue()).to(cartExchange).with("cart.cancelled");
     }
     @Bean
     Binding invEmptied(TopicExchange cartExchange) {
-        return BindingBuilder.bind(inventoryQueue()).to(cartExchange).with("cart.emptied");
+        return BindingBuilder.bind(cartSateChangeQueue()).to(cartExchange).with("cart.emptied");
     }
 
     // Billing
     @Bean
     Binding billConverted(TopicExchange cartExchange) {
-        return BindingBuilder.bind(ordersQueue()).to(cartExchange).with("cart.converted");
+        return BindingBuilder.bind(cartSateChangeQueue()).to(cartExchange).with("cart.converted");
     }
 
     // Notifications
     @Bean
     Binding notifLifecycle(TopicExchange cartExchange) {
-        return BindingBuilder.bind(notificationsQueue()).to(cartExchange)
+        return BindingBuilder.bind(cartSateChangeQueue()).to(cartExchange)
                 .with("cart.abandoned");
     }
 

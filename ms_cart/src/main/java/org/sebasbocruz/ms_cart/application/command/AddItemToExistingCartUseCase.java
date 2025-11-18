@@ -61,7 +61,7 @@ public class AddItemToExistingCartUseCase {
 
         Cart carFound = cartCommandsGateway.save(cart);
 
-        cart.getDomainEvents().forEach(publisher::publish);
+        cart.getDomainEvents().forEach(publisher::publishCartItemEvent);
 
         CartLine lineToAdd = carFound.getLines().get(product.getId());
 

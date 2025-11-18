@@ -9,8 +9,17 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA orders TO app_owner
 CREATE TYPE order_state_enum AS ENUM (
     'PENDING',
     'PAID',
-    'CANCELLED'
+    'CANCELLED',
+	'PROCESSING',
+	'SHIPPED',
+	'DELIVERED'
 );
+
+ALTER TYPE order_state_enum ADD VALUE 'PROCESSING';
+ALTER TYPE order_state_enum ADD VALUE 'SHIPPED';
+ALTER TYPE order_state_enum ADD VALUE 'DELIVERED';
+
+DROP TYPE order_state_enum;
 
 -- 2. ORDER STATE
 CREATE TABLE orders.order_state (
@@ -30,6 +39,12 @@ VALUES
     ('PENDING'),
     ('PAID'),
     ('CANCELLED');
+
+INSERT INTO orders.order_state (state)
+VALUES 
+    ('PROCESSING'),
+    ('SHIPPED'),
+    ('DELIVERED');
 
 SELECT * FROM orders.order_state;
 	

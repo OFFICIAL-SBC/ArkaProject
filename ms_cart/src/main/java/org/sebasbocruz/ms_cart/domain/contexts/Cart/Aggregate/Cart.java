@@ -83,10 +83,10 @@ public class Cart {
         domainEvents.add(new CartAbandoned(id.value(),reason));
     }
 
-    public void convertToOrder(String orderId) {
+    public void convertToOrder() {
         ensureCartIsOpen();
         this.state = CartState.CONVERTED;
-        domainEvents.add(new CartConverted(id.value(), orderId));
+        domainEvents.add(new CartConverted(id.value()));
     }
 
     private void ensureCartIsOpen() {

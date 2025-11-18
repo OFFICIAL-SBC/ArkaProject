@@ -31,7 +31,7 @@ public class DeleteItemFromExistingCartUseCase {
 
         cartCommandsGateway.save(cartFound);
 
-        cartFound.getDomainEvents().forEach(publisher::publish);
+        cartFound.getDomainEvents().forEach(publisher::publishCartItemEvent);
 
         return new LineDTO(
                 product_id,
