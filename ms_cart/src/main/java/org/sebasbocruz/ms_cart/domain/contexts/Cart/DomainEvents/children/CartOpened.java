@@ -1,10 +1,16 @@
 package org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children;
 
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartItemEvent;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartStateEvent;
 
-public class CartOpened extends CartItemEvent {
+public class CartOpened extends CartStateEvent {
 
-    public CartOpened(Long cartId, Long userId, String currency){
-        super(cartId, userId, currency);
+    private Long userId;
+    private String currency;
+
+    public CartOpened(Long cartId, String state, Long userId, String currency) {
+        super(cartId,state);
+        this.userId = userId;
+        this.currency = currency;
     }
 }

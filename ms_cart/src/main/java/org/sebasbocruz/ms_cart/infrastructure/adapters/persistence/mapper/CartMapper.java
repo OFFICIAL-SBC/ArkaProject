@@ -35,7 +35,7 @@ public final class CartMapper {
             lines.add(new LineDTO(detailEntity.getId(),name,amount,subtotal));
         }
 
-        return new CartDTO(entity.getUserEntity().getId(),entity.getCurrencyEntity().getCode(),accumulator,lines);
+        return new CartDTO(entity.getUserEntity().getId(),entity.getCartState().getCartState(), entity.getCurrencyEntity().getCode(),accumulator,lines);
     }
 
     public static Cart fromInfrastructureToDomain(CartEntity entity) {
@@ -79,7 +79,7 @@ public final class CartMapper {
             }
         }
 
-        for (var entry : desiredCartDetailListDomain.entrySet()) {
+        for ( Map.Entry<Long, Integer> entry : desiredCartDetailListDomain.entrySet()) {
             CartDetailEntity productsThatArentInTheEntityBuyTheyAreInTheDomain = new CartDetailEntity();
             productsThatArentInTheEntityBuyTheyAreInTheDomain.setCartEntity(cartEntity);
             productsThatArentInTheEntityBuyTheyAreInTheDomain.setProduct(productById.apply(entry.getKey()));

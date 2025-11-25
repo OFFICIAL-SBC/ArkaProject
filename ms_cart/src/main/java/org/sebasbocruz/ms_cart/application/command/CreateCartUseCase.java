@@ -40,7 +40,7 @@ public class CreateCartUseCase {
 
 
 
-        return new CartDTO(cartSaved.getUserId().value(),cartSaved.getCurrency(),total,cartLines);
+        return new CartDTO(cartSaved.getUserId().value(), cartSaved.getState(),cartSaved.getCurrency(),total,cartLines);
     }
 
 }

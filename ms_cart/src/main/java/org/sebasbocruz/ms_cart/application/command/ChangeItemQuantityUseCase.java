@@ -43,7 +43,7 @@ public class ChangeItemQuantityUseCase {
 
         Cart cartSaved = cartCommandsGateway.save(cartFound);
 
-        cartFound.getDomainEvents().forEach(publisher::publishCartItemEvent);
+        cartFound.pullCartItemEvents().forEach(publisher::publishCartItemEvent);
 
 
         return new LineDTO(

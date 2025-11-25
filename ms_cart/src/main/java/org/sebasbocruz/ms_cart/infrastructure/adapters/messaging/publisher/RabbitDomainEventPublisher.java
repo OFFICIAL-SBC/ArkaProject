@@ -49,7 +49,7 @@ public class RabbitDomainEventPublisher implements DomainEventPublisher {
     }
 
     @Override
-    public void publishCartOrderEvent(CartStateEvent event) {
+    public void publishCartStateEvent(CartStateEvent event) {
         String rk = event.getClass().getSimpleName().replaceAll("([A-Z])", ".$1")
                 .toLowerCase().substring(1);
 
@@ -57,6 +57,8 @@ public class RabbitDomainEventPublisher implements DomainEventPublisher {
                 .cartId(event.getCartId())
                 .state(event.getState())
                 .build();
+
+        logger.warn("Error publishing event: {}", rk);
 
         try{
 
@@ -67,4 +69,5 @@ public class RabbitDomainEventPublisher implements DomainEventPublisher {
             logger.error("Error publishing event: {}", e.getMessage());
         }
     }
+
 }

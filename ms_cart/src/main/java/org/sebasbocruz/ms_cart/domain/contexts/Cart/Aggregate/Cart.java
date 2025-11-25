@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CartState;
 import org.sebasbocruz.ms_cart.domain.commons.enums.CurrencyCode;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartItemEvent;
+import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartStateEvent;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children.*;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.CartLine;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.ValueObjects.cart.CartId;
@@ -30,7 +31,8 @@ public class Cart {
     private CartState state;
     private CurrencyCode currency;
     private final LinkedHashMap<ProductId, CartLine> lines = new LinkedHashMap<>();
-    private final List<CartItemEvent> domainEvents = new ArrayList<>();
+    private final List<CartItemEvent> cartItemEvents = new ArrayList<>();
+    private final List<CartStateEvent> cartStateEvents = new ArrayList<>();
 
 
     public Cart(CartId id, UserId userId, CurrencyCode currency, CartState state, Map<ProductId, CartLine> lines) {
@@ -49,21 +51,21 @@ public class Cart {
                     int newAmount = oldLine.quantity() + newLine.quantity();
                     return oldLine.withQuantity(newAmount, newAmount*price.value());
                 });
-        domainEvents.add(new CartItemAdded(id.value(), productId.value(), quantity));
+        cartItemEvents.add(new CartItemAdded(id.value(), productId.value(), quantity));
     }
 
     public void changeItemQuantity(ProductId productId,int currentQuantity, int newQuantity, ProductPrice price) {
         ensureCartIsOpen();
         if (!lines.containsKey(productId)) throw new IllegalStateException("Item not in cart");
         lines.put(productId, lines.get(productId).withQuantity(newQuantity, newQuantity*price.value()));
-        domainEvents.add(new CartItemQuantityChanged(id.value(), productId.value(), newQuantity - currentQuantity));
+        cartItemEvents.add(new CartItemQuantityChanged(id.value(), productId.value(), newQuantity - currentQuantity));
     }
 
     public CartLine removeItem(ProductId productId) {
         ensureCartIsOpen();
         CartLine cartLineRemoved = lines.remove(productId);
             if (cartLineRemoved != null) {
-                domainEvents.add(new CartItemRemoved(id.value(), productId.value(),cartLineRemoved.quantity()));
+                cartItemEvents.add(new CartItemRemoved(id.value(), productId.value(),cartLineRemoved.quantity()));
             }else {
                 throw new EntityNotFoundException("The product with ID "+productId.value()+" is not in the CART");
             }
@@ -74,28 +76,34 @@ public class Cart {
     public void cancel(String reason) {
         ensureCartIsOpen();
         this.state = CartState.CANCELLED;
-        domainEvents.add(new CartCancelled(id.value(), reason));
+        cartStateEvents.add(new CartCancelled(id.value(),CartState.CANCELLED.name(), reason));
     }
 
     public void abandoned(String reason) {
         ensureCartIsOpen();
         this.state = CartState.ABANDONED;
-        domainEvents.add(new CartAbandoned(id.value(),reason));
+        cartStateEvents.add(new CartAbandoned(id.value(), CartState.ABANDONED.name(),reason));
     }
 
     public void convertToOrder() {
         ensureCartIsOpen();
         this.state = CartState.CONVERTED;
-        domainEvents.add(new CartConverted(id.value()));
+        cartStateEvents.add(new CartConverted(id.value(),CartState.CONVERTED.name()));
     }
 
     private void ensureCartIsOpen() {
         if (state != CartState.OPEN) throw new IllegalStateException("Cart is not OPEN");
     }
 
-    public List<CartItemEvent> pullDomainEvents() {
-        var copy = List.copyOf(domainEvents);
-        domainEvents.clear();
+    public List<CartItemEvent> pullCartItemEvents() {
+        var copy = List.copyOf(cartItemEvents);
+        cartItemEvents.clear();
+        return copy;
+    }
+
+    public List<CartStateEvent> pullCartStateEvents() {
+        var copy = List.copyOf(cartStateEvents);
+        cartStateEvents.clear();
         return copy;
     }
 }

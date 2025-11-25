@@ -6,5 +6,5 @@ import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartSta
 
 public interface DomainEventPublisher {
     void publishCartItemEvent(CartItemEvent event);
-    void publishCartOrderEvent(CartStateEvent event);
+    void publishCartStateEvent(CartStateEvent event);
 }

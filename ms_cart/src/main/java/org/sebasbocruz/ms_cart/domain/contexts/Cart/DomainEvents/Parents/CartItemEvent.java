@@ -20,19 +20,4 @@ public abstract class CartItemEvent {
         this.quantity = quantity;
     }
 
-    protected CartItemEvent(Long cartId){
-        this.cartId = cartId;
-    }
-
-    protected CartItemEvent(Long cartId, String reason){
-        this.cartId = cartId;
-        this.reason = reason;
-    }
-
-    protected CartItemEvent(Long cartId, Long userId, String currency){
-        this.cartId = cartId;
-        this.userId = userId;
-        this.reason = currency;
-    }
-
 }

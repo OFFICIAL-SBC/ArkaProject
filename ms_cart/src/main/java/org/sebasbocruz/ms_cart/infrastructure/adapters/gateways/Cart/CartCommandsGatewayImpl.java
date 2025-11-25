@@ -77,6 +77,11 @@ public class CartCommandsGatewayImpl implements CartCommandsGateway {
                 .orElseThrow(() -> new EntityNotFoundException("The CART with id "+ cartDomain.getId().value()+"does not EXIST"));
 
         CartMapper.synchronizeJpaEntityWithDomain(cartDomain, cartEntity, productEntityRepository::getReferenceById);
+        CartStateEntity cartStateEntity = cartStateRepository.findCartStateEntitiesByCartState(cartDomain.getState())
+                .orElseThrow(() -> new EntityNotFoundException("Cart state not found"));
+
+        cartEntity.setCartState(cartStateEntity);
+
         return CartMapper.fromInfrastructureToDomain(cartRepository.save(cartEntity));
     }
 
