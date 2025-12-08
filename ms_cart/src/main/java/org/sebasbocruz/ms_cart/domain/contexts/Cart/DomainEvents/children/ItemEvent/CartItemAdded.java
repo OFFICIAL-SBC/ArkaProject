@@ -1,4 +1,4 @@
-package org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children;
+package org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children.ItemEvent;
 
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartItemEvent;
 

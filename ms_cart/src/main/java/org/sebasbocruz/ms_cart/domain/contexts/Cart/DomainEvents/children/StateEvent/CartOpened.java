@@ -1,6 +1,5 @@
-package org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children;
+package org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children.StateEvent;
 
-import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartItemEvent;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartStateEvent;
 
 public class CartOpened extends CartStateEvent {

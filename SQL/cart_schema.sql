@@ -192,5 +192,8 @@ SELECT * FROM cart.cart_detail;
 SELECT * FROM cart.cart;
 SELECT * FROM cart.cart_state;
 
-SELECT c.cart_id, c.amount, c.product_id, p.name FROM cart.cart_detail AS c INNER JOIN product.product AS p on c.product_id = p.product_id WHERE c.cart_id = 10;
+SELECT c.cart_id, c.amount, c.product_id, p.name FROM cart.cart_detail AS c INNER JOIN product.product AS p on c.product_id = p.product_id WHERE c.cart_id = 10;\
 
+UPDATE cart.cart
+SET cart_state_id = 1
+WHERE cart_id=10;

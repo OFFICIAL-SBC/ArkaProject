@@ -1,11 +1,9 @@
 package org.sebasbocruz.ms_cart.infrastructure.adapters.messaging.publisher;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartItemEvent;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartStateEvent;
-import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children.CartItemAdded;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.out.DomainEventPublisher;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.messaging.config.RabbitConfig;
 import org.sebasbocruz.ms_cart.infrastructure.adapters.messaging.dto.CartStateEventDTO;
@@ -57,8 +55,6 @@ public class RabbitDomainEventPublisher implements DomainEventPublisher {
                 .cartId(event.getCartId())
                 .state(event.getState())
                 .build();
-
-        logger.warn("Error publishing event: {}", rk);
 
         try{
 

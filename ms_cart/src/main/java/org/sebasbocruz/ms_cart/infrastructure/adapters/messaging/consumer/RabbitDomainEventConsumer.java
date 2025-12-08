@@ -2,7 +2,6 @@ package org.sebasbocruz.ms_cart.infrastructure.adapters.messaging.consumer;
 
 import lombok.RequiredArgsConstructor;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.Parents.CartItemEvent;
-import org.sebasbocruz.ms_cart.domain.contexts.Cart.DomainEvents.children.CartOpened;
 import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.in.DomainEventConsumer;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -17,7 +16,7 @@ public class RabbitDomainEventConsumer implements DomainEventConsumer {
 
     @Override
     @RabbitListener(
-            queues = "cart.state.change.queue"
+            queues = "cart.inventory.queue"
     )
     public Object consume(CartItemEvent cartItemEvent) {
 
