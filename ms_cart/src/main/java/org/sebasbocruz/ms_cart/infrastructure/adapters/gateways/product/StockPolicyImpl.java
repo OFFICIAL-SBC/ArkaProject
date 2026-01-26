@@ -22,7 +22,7 @@ public class StockPolicyImpl implements StockPolicy {
     public boolean isAvailable(ProductId productId, int quantity) {
 
         StockPolicyDTO response = restTemplate.getForObject(
-                baseUrl + "/api/v1/inventory/available-policy?productId={productId}",
+                baseUrl + "/api/v1/inventory/available?productId={productId}",
                 StockPolicyDTO.class,
                 productId.value()
         );

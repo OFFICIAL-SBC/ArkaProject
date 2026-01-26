@@ -89,16 +89,23 @@ public class CartCommandsGatewayImpl implements CartCommandsGateway {
     @Override
     public Map<Long, ProductEntity> fetchProductsById(List<LineDTO> lines) {
         Set<Long> ids = lines.stream().map(LineDTO::getProductId).collect(Collectors.toSet());
-        List<ProductEntity> found = productEntityRepository.findAllById(ids);
-        Map<Long, ProductEntity> map = found.stream().collect(Collectors.toMap(ProductEntity::getId, p -> p));
+        List<ProductEntity> foundProducts = productEntityRepository.findAllById(ids);
+        Map<Long, ProductEntity> mappedFoundProducts = foundProducts.stream().collect(Collectors.toMap(product -> product.getId(), p -> p));
+
+        // ! IMPORTANT:
+        // ! productEntityRepository.findAllById(ids); does NOT guarantee that all requested IDs exist.
+        // ! It silently returns only the entities that are found.
+        // ! This check enforces the business rule that every product referenced
+        // ! in the input must exist, failing fast to avoid operating on partial
+        // ! or inconsistent data later in the flow.
 
         // ensure all exist
         for (Long id : ids) {
-            if (!map.containsKey(id)) {
+            if (!mappedFoundProducts.containsKey(id)) {
                 throw new EntityNotFoundException("The product with ID " + id + " was not found");
             }
         }
-        return map;
+        return mappedFoundProducts;
     }
 
     private CartEntity buildCartEntity(

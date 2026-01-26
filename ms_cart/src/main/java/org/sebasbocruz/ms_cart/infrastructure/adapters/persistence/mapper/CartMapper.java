@@ -40,10 +40,10 @@ public final class CartMapper {
 
     public static Cart fromInfrastructureToDomain(CartEntity entity) {
 
-        var cart_id = new CartId(entity.getId());
-        var userId = new UserId(entity.getUserEntity().getId());
-        var currency = CurrencyCode.valueOf(entity.getCurrencyEntity().getCode().name());
-        var state = switch (entity.getCartState().getCartState()) {
+        CartId cart_id = new CartId(entity.getId());
+        UserId userId = new UserId(entity.getUserEntity().getId());
+        CurrencyCode currency = CurrencyCode.valueOf(entity.getCurrencyEntity().getCode().name());
+        CartState state = switch (entity.getCartState().getCartState()) {
             case OPEN -> CartState.OPEN;
             case INACTIVE -> CartState.INACTIVE;
             case ABANDONED -> CartState.ABANDONED;
@@ -51,7 +51,7 @@ public final class CartMapper {
             case CONVERTED -> CartState.CONVERTED;
         };
         Map<ProductId, CartLine> lines = new LinkedHashMap<>();
-        for (var cartDetail : entity.getDetails()) {
+        for (CartDetailEntity cartDetail : entity.getDetails()) {
             ProductId pid = new ProductId(cartDetail.getProduct().getId());
             lines.put(
                     pid,

@@ -17,7 +17,6 @@ public class QueryInventoryHandler {
 
     private final GetProductsToBeSuppliedUseCase getProductsToBeSuppliedUseCase;
     private final GetProductToBePurchasedUseCase getProductToBePurchasedUseCase;
-
     private final PdfReportService pdfReportService;
 
     Mono<ServerResponse> getProductsToBeSupplied(ServerRequest request) {

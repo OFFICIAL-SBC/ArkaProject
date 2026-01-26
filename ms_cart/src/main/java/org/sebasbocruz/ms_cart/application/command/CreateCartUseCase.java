@@ -21,7 +21,7 @@ public class CreateCartUseCase {
         Optional<Cart> cart = cartCommandsGateway.findCartByUserIdAndState(carDTO.getUserID(), CartState.OPEN);
 
         if(cart.isPresent()){
-            throw new IllegalArgumentException("You can NOT create a new car since the user already has a car created");
+            throw new IllegalArgumentException("You can NOT create a new car since the user already has a car OPENED");
         }
 
         Cart cartSaved = cartCommandsGateway.createNewCart(carDTO);
@@ -37,8 +37,6 @@ public class CreateCartUseCase {
                     itemTuple.getValue().subtotal()
             ));
         }
-
-
 
         return new CartDTO(cartSaved.getUserId().value(), cartSaved.getState(),cartSaved.getCurrency(),total,cartLines);
     }

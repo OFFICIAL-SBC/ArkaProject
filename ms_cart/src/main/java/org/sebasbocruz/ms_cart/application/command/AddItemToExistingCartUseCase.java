@@ -38,10 +38,10 @@ public class AddItemToExistingCartUseCase {
         Objects.requireNonNull(newLine, "newLine must not be null");
 
         if (newLine.getNumberOfProducts() <= 0) {
-            throw new IllegalArgumentException("numberOfProducts must be > 0");
+            throw new IllegalArgumentException("Number of products must be > 0");
         }
         if (newLine.getProductName() == null || newLine.getProductName().isBlank()) {
-            throw new IllegalArgumentException("productName must not be blank");
+            throw new IllegalArgumentException("Product name must not be blank");
         }
 
         Cart cart = cartCommandsGateway.findCartById(new CartId(cart_id))
@@ -53,22 +53,23 @@ public class AddItemToExistingCartUseCase {
 
         domainService.addWithPolicy(
                 cart,
-                new ProductId(newLine.getProductId()),
-                new ProductName(newLine.getProductName()),
-                newLine.getNumberOfProducts(),
-                product.getPrice()
+                product,
+                newLine.getNumberOfProducts()
         );
 
+        // ! carFound wont have the events since it is a new instance created when the car is saved
         Cart carFound = cartCommandsGateway.save(cart);
 
+        // ! That is why we publish the events from the original cart instance
         cart.pullCartItemEvents().forEach(publisher::publishCartItemEvent);
 
         CartLine lineToAdd = carFound.getLines().get(product.getId());
 
-        int qtySaved = lineToAdd.quantity();
+        int quantitySaved = lineToAdd.quantity();
         double subtotal = lineToAdd.subtotal();
+        String productName = lineToAdd.productName().name();
 
-        return new LineDTO(product.getId().value(),product.getName().name(),qtySaved,subtotal);
+        return new LineDTO(product.getId().value(),productName,quantitySaved,subtotal);
     }
 
 

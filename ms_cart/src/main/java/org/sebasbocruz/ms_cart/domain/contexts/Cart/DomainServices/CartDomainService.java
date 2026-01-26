@@ -6,6 +6,7 @@ import org.sebasbocruz.ms_cart.domain.contexts.Cart.gateway.out.StockPolicy;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductId;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductPrice;
+import org.sebasbocruz.ms_cart.domain.contexts.Product.entities.Product;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -18,9 +19,9 @@ public class CartDomainService {
 
         private final StockPolicy stockPolicy;
 
-        public void addWithPolicy(Cart cart, ProductId product_id, ProductName productName, int quantity, ProductPrice price) {
-            if (!stockPolicy.isAvailable(product_id, quantity)) throw new IllegalStateException("No stock AVAILABLE of product with ID"+ product_id);
-            cart.addItem(product_id,quantity, productName,price);
+        public void addWithPolicy(Cart cart, Product product, int quantity) {
+            if (!stockPolicy.isAvailable(product.getId(), quantity)) throw new IllegalStateException("No stock AVAILABLE of product with ID"+ product.getId());
+            cart.addItem(product.getId(),quantity, product.getName(),product.getPrice());
        }
 
        public void changeItemQuantityWithPolicy(Cart cart, ProductId product_id, int currentQuantity, int newQuantity, ProductPrice price){
