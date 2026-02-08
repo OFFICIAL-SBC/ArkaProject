@@ -80,11 +80,11 @@ public final class CartMapper {
         }
 
         for ( Map.Entry<Long, Integer> entry : desiredCartDetailListDomain.entrySet()) {
-            CartDetailEntity productsThatArentInTheEntityBuyTheyAreInTheDomain = new CartDetailEntity();
-            productsThatArentInTheEntityBuyTheyAreInTheDomain.setCartEntity(cartEntity);
-            productsThatArentInTheEntityBuyTheyAreInTheDomain.setProduct(productById.apply(entry.getKey()));
-            productsThatArentInTheEntityBuyTheyAreInTheDomain.setAmount(entry.getValue());
-            cartEntity.getDetails().add(productsThatArentInTheEntityBuyTheyAreInTheDomain);
+            CartDetailEntity productsThatArentInTheEntityButTheyAreInTheDomain = new CartDetailEntity();
+            productsThatArentInTheEntityButTheyAreInTheDomain.setCartEntity(cartEntity);
+            productsThatArentInTheEntityButTheyAreInTheDomain.setProduct(productById.apply(entry.getKey()));
+            productsThatArentInTheEntityButTheyAreInTheDomain.setAmount(entry.getValue());
+            cartEntity.getDetails().add(productsThatArentInTheEntityButTheyAreInTheDomain);
         }
     }
 

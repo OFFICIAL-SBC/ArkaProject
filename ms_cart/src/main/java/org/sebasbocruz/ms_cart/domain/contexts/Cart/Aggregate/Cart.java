@@ -51,7 +51,8 @@ public class Cart {
 
     public void addItem(ProductId productId, int quantity, ProductName name, ProductPrice price) {
         ensureCartIsOpen();
-        lines.merge(productId, new CartLine(name, quantity, quantity*price.value()),
+        lines.merge(productId,
+                new CartLine(name, quantity, quantity*price.value()),
                 (oldLine, newLine) -> {
                     int newAmount = oldLine.quantity() + newLine.quantity();
                     return oldLine.withQuantity(newAmount, newAmount*price.value());
