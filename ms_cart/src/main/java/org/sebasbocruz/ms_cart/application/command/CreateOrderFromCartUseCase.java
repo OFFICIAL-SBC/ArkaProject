@@ -32,7 +32,7 @@ public class CreateOrderFromCartUseCase {
 
         cart.pullCartStateEvents().forEach(domainEventPublisher::publishCartStateEvent);
 
-        List<LineDTO> cartLines = new ArrayList<LineDTO>();
+        List<LineDTO> cartLines = new ArrayList<>();
 
         double total = 0.0;
         for(Map.Entry<ProductId, CartLine> itemTuple: cartSaved.getLines().entrySet()){

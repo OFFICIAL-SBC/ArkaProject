@@ -30,7 +30,7 @@ public class ChangeItemQuantityUseCase {
                 .orElseThrow(() -> new EntityNotFoundException("The PRODUCT with ID "+product_id+" Does not exist in the Database"));
 
         if(cartFound.getLines().get(new ProductId(product_id)) == null){
-            throw new EntityNotFoundException("The Product with ID "+product_id+" is not the user's cart");
+            throw new EntityNotFoundException("The Product with ID "+product_id+" is not in the user's cart");
         }
 
         domainService.changeItemQuantityWithPolicy(

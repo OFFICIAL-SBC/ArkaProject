@@ -28,18 +28,46 @@ public class InventoryEventConsumer {
     @RabbitListener(queues = "${inventory.rabbitmq.queue}")
     public void consumeInventoryEvents(String json) {
         processEvent(json)
+                // ! Side-effect only: logs errors but does NOT handle them
                 .doOnError(e -> logger.error("Error processing event: {}", e.getMessage(), e))
-                .onErrorResume(e -> Mono.empty()) // Prevent listener from crashing
-                .subscribe(); // Subscribe to trigger execution
+                // ! Error recovery:
+                // ! - Converts any failure into a successful empty completion
+                // ! - Prevents listener crashes or endless retries
+                .onErrorResume(e -> Mono.empty())
+                // ! - Reactor chains are lazy
+                // ! - Without subscribe(), nothing runs
+                .subscribe();
     }
+
 
     private Mono<Void> processEvent(String json) {
         return Mono.fromCallable(() -> parseEvent(json))
+                // ! flatMap is used because handleEvent returns Mono<Void>
                 .flatMap(this::handleEvent)
+                // ! Executed only if the entire pipeline completes successfully
+                // ! For Mono<Void>, the value (v) is always null
                 .doOnSuccess(v -> logger.debug("Event processed successfully"))
                 .then();
     }
 
+    /**
+     * Parses the incoming message into a domain DTO.
+     *
+     * WHY throws Exception?
+     * - Jackson parsing methods throw CHECKED exceptions
+     * - Declaring throws defers error handling to the caller 💀💀💀💀💀
+     * - In reactive code, thrown exceptions are converted to onError signals
+     *
+     * This is NOT an alternative to try/catch:
+     * - It simply postpones error handling
+     * - Reactor (Mono.fromCallable) will catch it for us
+     *
+     * NOTE:
+     * The message contains a JSON string that itself wraps JSON:
+     *   "{\"eventType\":\"cart.item.added\", ... }"
+     * So we must unwrap it in two steps.
+     */
+    // ! throws Exception means -> I might fail, and I’m not handling the failure here. Whoever calls me must deal with it
     private InventoryEventDTO parseEvent(String json) throws Exception {
         // Unwrap nested JSON string first
         String innerJson = objectMapper.readValue(json, String.class);
