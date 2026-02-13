@@ -1,72 +1,47 @@
 package org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.handlers;
 
-import lombok.extern.slf4j.Slf4j;
-import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.dtos.ErrorResponse;
+
+import org.springframework.boot.autoconfigure.web.WebProperties;
+import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
+import org.springframework.boot.web.reactive.error.ErrorAttributes;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.server.*;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
+import java.util.Map;
 
-@RestControllerAdvice
-@Slf4j
-public class GlobalExceptionHandler {
+@Component
+public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public Mono<ResponseEntity<ErrorResponse>> handleResourceNotFound(
-            ResponseStatusException ex,
-            ServerWebExchange exchange) {
-
-        log.error("Resource not found: {}", ex.getMessage());
-
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .path(exchange.getRequest().getPath().value())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error("Not Found")
-                .message(ex.getMessage())
-                .build();
-
-        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(error));
+    public GlobalExceptionHandler(ErrorAttributes errorAttributes,
+                                  WebProperties.Resources resources,
+                                  ApplicationContext applicationContext,
+                                  ServerCodecConfigurer serverCodecConfigurer
+    ) {
+        super(errorAttributes, resources, applicationContext);
+            this.setMessageWriters(serverCodecConfigurer.getWriters());
+            this.setMessageReaders(serverCodecConfigurer.getReaders());
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public Mono<ResponseEntity<ErrorResponse>> handleIllegalArgument(
-            IllegalArgumentException ex,
-            ServerWebExchange exchange) {
-
-        log.error("Invalid argument: {}", ex.getMessage());
-
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .path(exchange.getRequest().getPath().value())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message(ex.getMessage())
-                .build();
-
-        return Mono.just(ResponseEntity.badRequest().body(error));
+    @Override
+    protected RouterFunction<ServerResponse> getRoutingFunction(ErrorAttributes errorAttributes) {
+        return RouterFunctions.route(RequestPredicates.all(), this::renderException);
     }
 
-    @ExceptionHandler(Exception.class)
-    public Mono<ResponseEntity<ErrorResponse>> handleGenericException(
-            Exception ex,
-            ServerWebExchange exchange) {
+    private Mono<ServerResponse> renderException(ServerRequest request) {
 
-        log.error("Unexpected error occurred", ex);
+        Map<String, Object> error = this.getErrorAttributes(request, ErrorAttributeOptions.defaults());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .path(exchange.getRequest().getPath().value())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("An unexpected error occurred")
-                .build();
+        return ServerResponse.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(error));
 
-        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error));
     }
 }
