@@ -1,6 +1,7 @@
 package org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.handlers;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -10,13 +11,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.*;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
+@Slf4j
 @Component
 public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
@@ -32,12 +33,13 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
     @Override
     protected RouterFunction<ServerResponse> getRoutingFunction(ErrorAttributes errorAttributes) {
-        return RouterFunctions.route(RequestPredicates.all(), this::renderException);
+        return RouterFunctions.route(RequestPredicates.all(), this::renderExceptionResponse);
     }
 
-    private Mono<ServerResponse> renderException(ServerRequest request) {
+    private Mono<ServerResponse> renderExceptionResponse(ServerRequest request) {
 
         Map<String, Object> error = this.getErrorAttributes(request, ErrorAttributeOptions.defaults());
+
 
         return ServerResponse.status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
