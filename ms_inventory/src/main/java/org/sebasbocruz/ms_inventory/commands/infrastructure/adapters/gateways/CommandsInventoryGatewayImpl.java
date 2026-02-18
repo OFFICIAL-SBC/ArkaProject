@@ -1,6 +1,7 @@
 package org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.gateways;
 
 import lombok.RequiredArgsConstructor;
+import org.sebasbocruz.ms_inventory.commands.domain.commons.errors.EntityNotFoundException;
 import org.sebasbocruz.ms_inventory.commands.domain.commons.movement.MovementType;
 import org.sebasbocruz.ms_inventory.commands.domain.commons.reference.ReferenceType;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Aggregate.Inventory;
@@ -92,23 +93,26 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                 flatMap(
                         warehouseEntity -> {
                             return addressRepository.findById(warehouseEntity.getAddressId())
-                                    .flatMap(addressEntity -> Mono.zip(
-                                                    countryRepository.findById(addressEntity.getCountryId()),
-                                                    cityRepository.findById(addressEntity.getCityId())
-                                    ).map(tuple -> {
-                                        CountryEntity countryEntity = tuple.getT1();
-                                        CityEntity cityEntity = tuple.getT2();
+                                    .flatMap(addressEntity ->
+                                        Mono.zip(
+                                                countryRepository.findById(addressEntity.getCountryId()),
+                                                cityRepository.findById(addressEntity.getCityId())
+                                        ).map(tuple -> {
+                                            CountryEntity countryEntity = tuple.getT1();
+                                            CityEntity cityEntity = tuple.getT2();
 
-                                        return new Warehouse(
-                                                warehouseEntity.getWarehouseId(),
-                                                warehouseEntity.getName(),
-                                                addressEntity.getAddress(),
-                                                countryEntity.getName(),
-                                                cityEntity.getName()
+                                            return new Warehouse(
+                                                    warehouseEntity.getWarehouseId(),
+                                                    warehouseEntity.getName(),
+                                                    addressEntity.getAddress(),
+                                                    countryEntity.getName(),
+                                                    cityEntity.getName()
 
-                                        );
+                                            );
                                     }));
                         }
+                ).onErrorResume(
+                        e -> Mono.error(new EntityNotFoundException("Warehouse with id "+warehouseId+" was not found"))
                 );
     }
 
