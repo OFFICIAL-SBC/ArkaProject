@@ -1,6 +1,7 @@
 package org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.gateways;
 
 import lombok.RequiredArgsConstructor;
+import org.sebasbocruz.ms_inventory.commands.domain.commons.errors.DataAccessException;
 import org.sebasbocruz.ms_inventory.commands.domain.commons.errors.EntityNotFoundException;
 import org.sebasbocruz.ms_inventory.commands.domain.commons.movement.MovementType;
 import org.sebasbocruz.ms_inventory.commands.domain.commons.reference.ReferenceType;
@@ -8,6 +9,7 @@ import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Aggregate
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Entity.Warehouse;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.ValueObjects.Quantity;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.gateway.CommandsInventoryGateway;
+import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.Mappers.CommandsInventoryMapper;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.Mappers.CommandsProductMapper;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.dtos.InventoryDTOcommands;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.inventory.InventoryEntity;
@@ -45,14 +47,14 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
     private final MovementRepositoryCommands movementRepository;
 
     private final CommandsProductMapper commandsProductMapper;
-
+    private final CommandsInventoryMapper commandsInventoryMapper;
 
 
 
     @Override
     public Mono<Inventory> registerNewProduct(InventoryDTOcommands inventoryDTOcommands) {
 
-        Mono<ProductEntity> productEntitySaved = productRepository.save(
+        return productRepository.save(
                 commandsProductMapper.fromClientToEntity(
                         inventoryDTOcommands.getBrandId(),
                         inventoryDTOcommands.getCategoryId(),
@@ -61,42 +63,44 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                         inventoryDTOcommands.getPrice(),
                         inventoryDTOcommands.getDiscount()
                 )
-        );
-
-        Mono<InventoryEntity> inventoryEntitySaved = productEntitySaved.flatMap(productEntity ->
-                inventoryRepository.save(
-                        InventoryEntity.builder()
-                                .productId(productEntity.getProductId())
-                                .warehouseId(inventoryDTOcommands.getWarehouseId())
-                                .availableStock(inventoryDTOcommands.getInitialStock())
-                                .thresholdStock(inventoryDTOcommands.getThresholdStock())
-                                .build()
-                )
-        );
-
-        return inventoryEntitySaved.flatMap(inventoryEntity ->
-                Mono.just(
-                        new Inventory(
-                                inventoryEntity.getInventoryId(),
-                                inventoryEntity.getProductId(),
-                                inventoryEntity.getWarehouseId(),
-                                new Quantity(inventoryEntity.getAvailableStock()),
-                                new Quantity(inventoryEntity.getThresholdStock())
-                        )
-                )
-        );
+        ).switchIfEmpty(Mono.error(new DataAccessException("Product "+inventoryDTOcommands.getName()+" could not be saved")))
+                .flatMap(productEntity -> {
+                    return inventoryRepository.save(
+                            InventoryEntity.builder()
+                                    .productId(productEntity.getProductId())
+                                    .warehouseId(inventoryDTOcommands.getWarehouseId())
+                                    .availableStock(inventoryDTOcommands.getInitialStock())
+                                    .thresholdStock(inventoryDTOcommands.getThresholdStock())
+                                    .build()
+                    ).switchIfEmpty(Mono.error(new DataAccessException("Inventory for product"+inventoryDTOcommands.getName()+" could not be saved")));
+                }).flatMap(
+                        inventoryEntity -> {
+                            return Mono.just(
+                                    commandsInventoryMapper.fromEntityToDomain(inventoryEntity)
+                            );
+                        }
+                ).onErrorMap(error -> {
+                    if(!(error instanceof DataAccessException)){
+                        return new RuntimeException("Unexpected error when trying to add the product "+inventoryDTOcommands.getName());
+                    }
+                    return error;
+                });
     }
 
 
     public Mono<Warehouse> doesWarehouseExist(Long warehouseId) {
-        return warehouseRepository.findById(warehouseId).
-                flatMap(
+        return warehouseRepository.findById(warehouseId)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Warehouse with id "+warehouseId+" was not found")))
+                .flatMap(
                         warehouseEntity -> {
                             return addressRepository.findById(warehouseEntity.getAddressId())
+                                    .switchIfEmpty(Mono.error(new EntityNotFoundException("Address with ID"+warehouseEntity.getAddressId()+" was not found")))
                                     .flatMap(addressEntity ->
                                         Mono.zip(
-                                                countryRepository.findById(addressEntity.getCountryId()),
+                                                countryRepository.findById(addressEntity.getCountryId())
+                                                        .switchIfEmpty(Mono.error(new EntityNotFoundException("Country with ID"+addressEntity.getCountryId()+" was not found"))),
                                                 cityRepository.findById(addressEntity.getCityId())
+                                                        .switchIfEmpty(Mono.error(new EntityNotFoundException("Country with ID"+addressEntity.getCityId()+" was not found")))
                                         ).map(tuple -> {
                                             CountryEntity countryEntity = tuple.getT1();
                                             CityEntity cityEntity = tuple.getT2();
@@ -111,8 +115,14 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                                             );
                                     }));
                         }
-                ).onErrorResume(
-                        e -> Mono.error(new EntityNotFoundException("Warehouse with id "+warehouseId+" was not found"))
+                ).onErrorMap(
+                        originalError -> {
+                            if (!(originalError instanceof EntityNotFoundException )){
+                                return new RuntimeException("Unexpected error when fetching warehouse with id "+warehouseId,originalError);
+                            }
+
+                            return originalError; // ! pass EntityNotFoundException through unchanged
+                        }
                 );
     }
 
