@@ -10,7 +10,8 @@ public class DataAccessException extends DomainException{
 
     private String entityMessage;
 
-    public DataAccessException(String errorMessage){
+    // TODO: I need to add the actual message of the error and its details in ht ems response
+    public DataAccessException(String errorMessage, Throwable ex){
         this.entityMessage = errorMessage;
     }
 
