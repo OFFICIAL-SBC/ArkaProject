@@ -8,14 +8,12 @@ import org.sebasbocruz.ms_inventory.commands.domain.commons.movement.MovementTyp
 import org.sebasbocruz.ms_inventory.commands.domain.commons.reference.ReferenceType;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Aggregate.Inventory;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.Entity.Warehouse;
-import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.ValueObjects.Quantity;
 import org.sebasbocruz.ms_inventory.commands.domain.contexts.Inventory.gateway.CommandsInventoryGateway;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.Mappers.CommandsInventoryMapper;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.Mappers.CommandsProductMapper;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.dtos.InventoryDTOcommands;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.inventory.InventoryEntity;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.inventory.MovementEntity;
-import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.product.ProductEntity;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.publics.CityEntity;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.persistence.schemas.publics.CountryEntity;
 import org.sebasbocruz.ms_inventory.commands.infrastructure.adapters.repositories.schema.inventory.MovementRepositoryCommands;
@@ -68,7 +66,7 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                         inventoryDTOcommands.getPrice(),
                         inventoryDTOcommands.getDiscount()
                 )
-        ).switchIfEmpty(Mono.error(new DataAccessException("Product "+inventoryDTOcommands.getName()+" could not be saved")))
+        ).onErrorMap(exception -> new DataAccessException("Error trying to add a new product to the inventory",exception))
                 .flatMap(productEntity -> {
                     return inventoryRepository.save(
                             InventoryEntity.builder()
@@ -179,6 +177,7 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                     int updatedStock = inventoryEntity.getAvailableStock() + quantity;
                     inventoryEntity.setAvailableStock(updatedStock);
                     return inventoryRepository.save(inventoryEntity)
+                            .onErrorMap(exception -> new DataAccessException("Error when trying to update quatity of product "+productId+" in the inventory",exception))
                             .flatMap(savedEntity -> {
                                 // Optionally, log the movement
                                 return movementRepository.save(
@@ -188,9 +187,13 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                                                 .referenceType(ReferenceType.CART.name())
                                                 .quantity(quantity)
                                                 .build()
-                                );
+                                ).onErrorMap(exception -> new DataAccessException(
+                                        "Failed to save movement record for inventory ID " +
+                                                savedEntity.getInventoryId(), exception));
                             });
-                })
+                }).doOnError(exception -> logger.error(
+                        "Error handling cart item deletion — cartId={}, productId={}, quantity={}: {}",
+                        cartId, productId, quantity, exception.getMessage()))
                 .then();
     }
 
@@ -200,7 +203,13 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                 .switchIfEmpty(Mono.error(new NoSuchObjectException("Product with ID " + productId + " not found in any Warehouse.")))
                 .flatMap(inventoryEntity -> {
                     int updatedStock = inventoryEntity.getAvailableStock() - quantityDifference;
-                    inventoryEntity.setAvailableStock(updatedStock);
+
+                    if(updatedStock >= inventoryEntity.getThresholdStock()){
+                        return Mono.error(new InsufficientStockException(
+                                "Insufficient stock for product ID " + productId +
+                                        ". Requested: " + quantityDifference + ", Available: " + inventoryEntity.getAvailableStock()));
+                    }
+
                     return inventoryRepository.save(inventoryEntity)
                             .flatMap(savedEntity -> {
                                 // Optionally, log the movement
@@ -211,9 +220,13 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                                                 .referenceType(ReferenceType.CART.name())
                                                 .quantity(quantityDifference < 0 ? -quantityDifference : quantityDifference)
                                                 .build()
-                                );
+                                ).onErrorMap(exception -> new DataAccessException(
+                                        "Failed to save movement record for inventory ID " +
+                                                savedEntity.getInventoryId(), exception));
                             });
-                })
+                }).doOnError(exception -> logger.error(
+                        "Error handling cart item deletion — cartId={}, productId={}, quantity={}: {}",
+                        cartId, productId, quantityDifference, exception.getMessage()))
                 .then();
     }
 
