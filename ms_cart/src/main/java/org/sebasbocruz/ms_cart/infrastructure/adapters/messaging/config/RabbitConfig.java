@@ -75,8 +75,8 @@ public class RabbitConfig {
     }
 
 
-    // * SpringBoot will automatically configure these 3 beans by default
-    // ConnectionFactory
-    // RabbitTemplate
-    // RabbitAdmin
+    // ! SpringBoot will automatically configure these 3 beans by default
+    // ! ConnectionFactory
+    // ! RabbitTemplate
+    // ! RabbitAdmin
 }

@@ -5,6 +5,9 @@ import org.sebasbocruz.ms_cart.domain.contexts.Product.ValueObjects.ProductName;
 // ! The canonical constructor is the one that receives all the components of the record object in the same order in which
 // ! they were declared
 public record CartLine(ProductName productName, int quantity, double subtotal) {
+    // ? A Record is designed to represent
+    // ? Immutable data carriers -> A RECORD IS A COMPACT WAY TO DECLARE A CLASS WHOSE MAIN PURPOSE IS TO HOLD DATA.
+    // ? Java automatically generates: Private final fields, constructor, getters, equals, hasCode(), toString
 
     // ! This is the compact constructor, a SHORTHAND WAY of redefining the canonical constructor.
     // ! The params assignations it is made IMPLICITLY AT THE END OF THE BLOCK
