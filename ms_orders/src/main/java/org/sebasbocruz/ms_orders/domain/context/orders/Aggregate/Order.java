@@ -1,6 +1,7 @@
 package org.sebasbocruz.ms_orders.domain.context.orders.Aggregate;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.sebasbocruz.ms_orders.domain.commons.OrderState;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderCancelledEvent;
@@ -16,13 +17,14 @@ import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class Order {
 
-    private final Long orderId;
-    private final Long clientId;
-    private final Long userId;
-    private final Long warehouseId;
-    private final Long currencyId;
+    private Long orderId;
+    private  Long clientId;
+    private  Long userId;
+    private  Long warehouseId;
+    private  Long currencyId;
 
     private OrderState state;
     private double total;
@@ -30,7 +32,7 @@ public class Order {
     private double taxPercentage;
     private double discount;
 
-    private final Instant createdAt;
+    private  Instant createdAt;
     private Instant updatedAt;
 
     private final List<OrderDetail> details = new ArrayList<>();
@@ -39,7 +41,7 @@ public class Order {
     private final List<DomainOrderEvent> domainEvents = new ArrayList<>();
 
     // --------- ctor is private: use factory methods ----------
-    private Order(
+    public Order(
             Long orderId,
             Long clientId,
             Long userId,

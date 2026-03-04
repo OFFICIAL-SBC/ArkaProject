@@ -22,26 +22,16 @@ public class CartStateChangeEventConsumer {
     public void consumeCartStateChangeEvent(String json) {
         // Implementation to consume cart state change events
         processEvent(json)
-
-        try{
-            String innerJson = objectMapper.readValue(json, String.class);
-            CartStateEventDTO event = objectMapper.readValue(innerJson, CartStateEventDTO.class);
-
-            if(Objects.equals(event.getState(), "CONVERTED")){
-                logger.info("Cart with ID {} has been converted to an order.", event.getCartId());
-                // Additional logic to handle the cart conversion can be added here
-            }
-
-        }catch (Exception e) {
-            logger.error("Error processing event: {}", e.getMessage());
-        }
+                .doOnError(error -> logger.error("Error processing event from ms_orders: {}",error.getMessage(),error))
+                .onErrorResume(error -> Mono.empty())
+                .subscribe();
     }
 
     private Mono<Void> processEvent(String json){
         return Mono.fromCallable(() -> parseEvent(json))
-                .flatMap(cartStateEventDTO -> {
-                    return handleEvent(cartStateEventDTO);
-                }).then();
+                .flatMap(this::chooseEvent)
+                .doOnSuccess(y -> logger.debug("Event processed succesfully in ms_orders"))
+                .then();
 
     }
 
@@ -56,12 +46,14 @@ public class CartStateChangeEventConsumer {
         return event;
     }
 
-    private Mono<Void> handleEvent(CartStateEventDTO event){
+    private Mono<Void> chooseEvent(CartStateEventDTO event){
         return switch(event.getState()){
             case "CONVERTED" ->
                 Mono.empty();
-            default ->
-                Mono.empty();
+            default -> {
+                logger.warn("Unknown cart state type: {}",event.getState());
+                yield Mono.empty();
+            }
 
         };
     }
