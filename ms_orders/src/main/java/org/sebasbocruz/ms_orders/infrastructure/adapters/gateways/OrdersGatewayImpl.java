@@ -1,6 +1,8 @@
 package org.sebasbocruz.ms_orders.infrastructure.adapters.gateways;
 
 import lombok.RequiredArgsConstructor;
+import org.sebasbocruz.ms_orders.domain.commons.errors.DataAccessException;
+import org.sebasbocruz.ms_orders.domain.commons.errors.EntityNotFoundException;
 import org.sebasbocruz.ms_orders.domain.context.orders.Aggregate.Order;
 import org.sebasbocruz.ms_orders.domain.context.orders.Gateways.OrdersGateway;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.Mappers.OrderMapper;
@@ -25,7 +27,12 @@ public class OrdersGatewayImpl implements OrdersGateway {
     @Override
     public Mono<Order> createNewOrder(Long cartID) {
         return cartRepository.findById(cartID)
-                .doOnSuccess(cartEntity -> logger.info("I am here"))
-                .fromCallable(() -> orderMapper.fromInfrastructureToDomain());
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Cart with ID "+cartID+"was not found")))
+                .doOnNext(cartEntity ->logger.info("Cart found, creating order for cartId: {}", cartEntity.getCartId()))
+                .map(cartEntity -> {return orderMapper.fromInfrastructureToDomain(cartEntity);})
+                .onErrorMap(
+                        exception ->!(exception instanceof EntityNotFoundException),
+                        exception -> new DataAccessException("Error trying to get CartByID", exception)
+                );
     }
 }

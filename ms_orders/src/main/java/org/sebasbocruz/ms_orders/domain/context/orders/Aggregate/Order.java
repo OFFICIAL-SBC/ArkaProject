@@ -3,7 +3,7 @@ package org.sebasbocruz.ms_orders.domain.context.orders.Aggregate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.sebasbocruz.ms_orders.domain.commons.OrderState;
+import org.sebasbocruz.ms_orders.domain.commons.states.OrderState;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderCancelledEvent;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderCreatedEvent;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderPaidEvent;
