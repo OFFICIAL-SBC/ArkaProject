@@ -22,11 +22,11 @@ import java.time.Instant;
 public class OrdersGatewayImpl implements OrdersGateway {
 
     private Logger logger = LoggerFactory.getLogger(OrdersGatewayImpl.class);
-    private CartRepository cartRepository;
-    private CartDetailRepository cartDetailRepository;
-    private OrderRepository orderRepository;
+    private final CartRepository cartRepository;
+    private final CartDetailRepository cartDetailRepository;
+    private final OrderRepository orderRepository;
 
-    private OrderMapper orderMapper;
+    private final OrderMapper orderMapper;
 
 
     @Override

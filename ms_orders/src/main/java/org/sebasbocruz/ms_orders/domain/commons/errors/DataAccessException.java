@@ -19,6 +19,6 @@ public class DataAccessException extends DomainException{
 
     @Override
     public HttpStatus status() {
-        return null;
+        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 }

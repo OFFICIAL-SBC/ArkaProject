@@ -14,6 +14,6 @@ public class EntityNotFoundException extends DomainException{
 
     @Override
     public HttpStatus status() {
-        return null;
+        return HttpStatus.NOT_FOUND;
     }
 }
