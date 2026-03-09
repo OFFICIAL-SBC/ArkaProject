@@ -2,6 +2,7 @@ package org.sebasbocruz.ms_orders.infrastructure.entrypoints.Commands;
 
 import lombok.RequiredArgsConstructor;
 import org.sebasbocruz.ms_orders.application.CreateNewOrderUseCase;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.DTOS.OUT.OrderDTO;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -21,7 +22,7 @@ public class OrderCommandHandler {
 
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(createNewOrderUseCase.execute(carIDRequested));
+                .body(createNewOrderUseCase.execute(carIDRequested), OrderDTO.class);
     }
 
 }

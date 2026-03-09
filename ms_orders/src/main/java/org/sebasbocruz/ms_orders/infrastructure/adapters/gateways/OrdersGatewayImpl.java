@@ -37,11 +37,11 @@ public class OrdersGatewayImpl implements OrdersGateway {
                 .flatMap(cartEntity -> {
                         return orderRepository.save(
                                 OrderEntity.builder()
-                                .client_id(1)
-                                .user_id(1)
-                                .warehouse_id(2)
-                                .order_state_id(1)
-                                .currency_id(1)
+                                .client_id((long)1)
+                                .user_id((long)1)
+                                .warehouse_id((long)2)
+                                .order_state_id((long)1)
+                                .currency_id((long)1)
                                 .total_price(856.36)
                                 .taxes(0.01)
                                 .discount(0)
