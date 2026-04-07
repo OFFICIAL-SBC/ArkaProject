@@ -8,6 +8,7 @@ import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.reactive.error.ErrorAttributes;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.stereotype.Component;
@@ -40,8 +41,7 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
         Map<String, Object> error = this.getErrorAttributes(request, ErrorAttributeOptions.defaults());
 
-
-        return ServerResponse.status(HttpStatus.BAD_REQUEST)
+        return ServerResponse.status((HttpStatusCode) error.get("status"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(error));
 
