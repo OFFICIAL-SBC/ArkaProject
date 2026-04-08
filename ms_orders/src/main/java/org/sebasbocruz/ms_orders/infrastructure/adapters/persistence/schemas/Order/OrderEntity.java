@@ -14,7 +14,6 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 @Table(name="orders.orders")
 public class OrderEntity {
 

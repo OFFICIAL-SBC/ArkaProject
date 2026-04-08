@@ -51,7 +51,7 @@ public class OrdersGatewayImpl implements OrdersGateway {
                         );
                     }
                 )
-                .map(orderEntity -> {return orderMapper.fromInfrastructureToDomain(orderEntity);})
+                .map(orderEntity ->  orderMapper.fromInfrastructureToDomain(orderEntity))
                 .onErrorMap(
                         exception ->!(exception instanceof EntityNotFoundException),
                         exception -> new DataAccessException("Error trying to get CartByID", exception)

@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitConfig {
-    // ? @Configuration -> Tells Spring that this class contains bean definitions and should be processed by the Spring container at startup
+    // ? @Configuration -> Tells Spring that this class contains bean
+    // definitions and should be processed by the Spring container at startup
 
     public static final String EXCHANGE  = "order.event.exchange";
     public static final String ORDER_STATE_EVENT_QUEUE = "order.event.change.queue";

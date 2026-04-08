@@ -39,8 +39,10 @@ public class GlobalErrorHandler extends AbstractErrorWebExceptionHandler {
 
         Map<String, Object> errorMap = getErrorAttributes(request,ErrorAttributeOptions.defaults());
 
+        int statusCode = (int)errorMap.get("status");
+        HttpStatus status = HttpStatus.valueOf(statusCode);
 
-        return ServerResponse.status((HttpStatusCode) errorMap.get("status"))
+        return ServerResponse.status(status)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(errorMap));
     }
