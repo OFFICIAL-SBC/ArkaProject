@@ -14,7 +14,7 @@ public class DataAccessException extends DomainException{
     public DataAccessException(String message,Throwable ex ){
 
         this.ex = ex;
-        this.message = message;
+        this.message = ex.getMessage();
     }
 
     @Override
