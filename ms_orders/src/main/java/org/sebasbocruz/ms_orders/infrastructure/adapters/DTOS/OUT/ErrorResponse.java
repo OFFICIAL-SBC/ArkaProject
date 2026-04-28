@@ -16,17 +16,23 @@ import java.util.Map;
 public class ErrorResponse extends DefaultErrorAttributes {
     @Override
     public Map<String, Object> getErrorAttributes(ServerRequest serverRequest, ErrorAttributeOptions options){
-        Map<String, Object> errorMap = super.getErrorAttributes(serverRequest, options);
+        Map<String, Object> errorMap = super.getErrorAttributes(serverRequest,options);
         Throwable rawError = getError(serverRequest);
 
-        if(rawError instanceof DomainException){
-            errorMap.put("status",((DomainException) rawError).status().value());
-            errorMap.put("error", ((DomainException) rawError).status().getReasonPhrase());
+        if(rawError instanceof DomainException ex){
+            errorMap.put("status", ex.status().value());
+            errorMap.put("error", ex.status().getReasonPhrase());
+            errorMap.put("code", ex.code());
+            errorMap.put("domain", ex.getDomain());
+            errorMap.put("timestamp", ex.getTimestamp().toString());
+
+            // each subclass can contribute its own fields
+            errorMap.putAll(ex.extraAttributes());
         }
 
         errorMap.put("message",rawError.getMessage());
         errorMap.put("path",serverRequest.path());
-        errorMap.put("method",serverRequest.method().name());
+        errorMap.put("method",serverRequest.method());
 
         return errorMap;
 

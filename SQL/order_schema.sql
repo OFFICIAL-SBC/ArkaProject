@@ -3,6 +3,7 @@ CREATE SCHEMA IF NOT EXISTS orders; -- I already crested this schema ✅
 
 GRANT USAGE ON SCHEMA orders TO app_owner; -- I already did this ✅
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA orders TO app_owner; -- I already did this ✅
+GRANT USAGE, SELECT, UPDATE ON SEQUENCE orders.orders_order_id_seq TO app_owner; 
 
 
 -- 1. ENUM FOR ORDER STATE
@@ -119,3 +120,5 @@ SELECT * FROM orders.orders;
 SELECT * FROM orders.bill;
 
 SELECT * FROM orders.order_detail;
+
+SELECT * FROM public.currency;
