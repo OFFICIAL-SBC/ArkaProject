@@ -19,6 +19,7 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 
 @Component
+@Order(-2)
 public class GlobalErrorHandler extends AbstractErrorWebExceptionHandler {
 
     public GlobalErrorHandler(ErrorAttributes errorAttributes,

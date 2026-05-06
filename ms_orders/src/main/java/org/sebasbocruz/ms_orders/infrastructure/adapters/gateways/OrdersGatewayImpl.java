@@ -3,7 +3,8 @@ package org.sebasbocruz.ms_orders.infrastructure.adapters.gateways;
 import lombok.RequiredArgsConstructor;
 import org.sebasbocruz.ms_orders.domain.commons.errors.DataAccessException;
 import org.sebasbocruz.ms_orders.domain.commons.errors.EntityNotFoundException;
-import org.sebasbocruz.ms_orders.domain.commons.states.OrderState;
+import org.sebasbocruz.ms_orders.domain.commons.errors.InvalidStateTransitionException;
+import org.sebasbocruz.ms_orders.domain.commons.states.Cart.CartState;
 import org.sebasbocruz.ms_orders.domain.context.orders.Aggregate.Order;
 import org.sebasbocruz.ms_orders.domain.context.orders.Gateways.OrdersGateway;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.Mappers.OrderMapper;
@@ -42,15 +43,16 @@ public class OrdersGatewayImpl implements OrdersGateway {
 
     @Override
     public Mono<Order> createNewOrder(Long cartID) {
-
+        Long cartState = 0L;
         return findCartOrFail(cartID)
+                .doOnNext(cartEntity -> cartState=cartEntity.getCartStateID())
                 .filter(cartEntity -> cartEntity.getCartStateID() == CART_STATE_CONVERTED)
-                .switchIfEmpty(Mono.error(new IllegalStateException("The CART must be in state converted")))
+                .switchIfEmpty(Mono.error(new InvalidStateTransitionException("CART", CartState.CART_STATES.get(cartEntity.getCartStateID())))
                 .flatMap(cartEntity -> buildOrderEntity(cartEntity, cartID))
                 .flatMap(orderEntity -> orderRepository.save(orderEntity))
                 .map(orderMapper::fromInfrastructureToDomain)
                 .onErrorMap(
-                        ex -> !(ex instanceof EntityNotFoundException) && !(ex instanceof IllegalStateException),
+                        ex -> !(ex instanceof EntityNotFoundException) && !(ex instanceof InvalidStateTransitionException),
                         ex -> new DataAccessException("CREATE","Order",ex)
                 );
     }
@@ -63,9 +65,7 @@ public class OrdersGatewayImpl implements OrdersGateway {
     private Mono<OrderEntity> buildOrderEntity(CartEntity cart, Long cartId){
         return cartDetailRepository.findCartDetailEntitiesByCartID(cartId)
                 .collectList()
-                .flatMap(details -> loadProductsByID(details)
-                        .map(result -> assembleOrder(cart, details, result)));
-
+                .flatMap(details -> loadProductsByID(details).map(result -> assembleOrder(cart, details, result)));
     }
 
     private Mono<Map<Long, ProductEntity>> loadProductsByID(List<CartDetailEntity> details){
@@ -75,7 +75,7 @@ public class OrdersGatewayImpl implements OrdersGateway {
     }
 
     private OrderEntity assembleOrder(CartEntity cart, List<CartDetailEntity> details,Map<Long, ProductEntity> productsByID){
-        double totalPrice = details.stream().mapToDouble(detail -> detail.getAmount()*productsByID.get(detail.getProductID()).getPrice()*(1-productsByID.get(detail.getProductID()).getDiscount()))
+        double totalPrice = details.stream().mapToDouble(detail -> detail.getAmount()*productsByID.get(detail.getProductID()).getPrice()*(1-productsByID.get(detail.getProductID()).getDiscount()/100))
                 .sum();
 
         return OrderEntity.builder()
