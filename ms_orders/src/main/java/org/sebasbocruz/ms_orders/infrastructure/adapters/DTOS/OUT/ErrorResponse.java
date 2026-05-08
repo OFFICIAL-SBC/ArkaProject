@@ -32,7 +32,7 @@ public class ErrorResponse extends DefaultErrorAttributes {
 
         errorMap.put("message",rawError.getMessage());
         errorMap.put("path",serverRequest.path());
-        errorMap.put("method",serverRequest.method());
+        errorMap.put("method",serverRequest.method().name());
 
         return errorMap;
 

@@ -13,7 +13,7 @@ public class InvalidStateTransitionException extends DomainException{
     private final String attemptedState;
 
     public InvalidStateTransitionException(String resourceType, String currentState, String attemptedState, String domain){
-        super(String.format("Cannot transition %s from '%s' to '%s'", resourceType,currentState,attemptedState),domain);
+        super(String.format("Cannot transition %s from state '%s' to '%s'", resourceType,currentState,attemptedState),domain);
         this.resourceType = resourceType;
         this.attemptedState = attemptedState;
         this.currentState = currentState;

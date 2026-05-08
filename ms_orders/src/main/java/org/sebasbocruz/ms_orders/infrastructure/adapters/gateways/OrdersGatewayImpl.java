@@ -45,11 +45,9 @@ public class OrdersGatewayImpl implements OrdersGateway {
     public Mono<Order> createNewOrder(Long cartID) {
         Long cartState = 0L;
         return findCartOrFail(cartID)
-                .doOnNext(cartEntity -> cartState=cartEntity.getCartStateID())
-                .filter(cartEntity -> cartEntity.getCartStateID() == CART_STATE_CONVERTED)
-                .switchIfEmpty(Mono.error(new InvalidStateTransitionException("CART", CartState.CART_STATES.get(cartEntity.getCartStateID())))
+                .flatMap(this::ensureCartStateIsConverted)
                 .flatMap(cartEntity -> buildOrderEntity(cartEntity, cartID))
-                .flatMap(orderEntity -> orderRepository.save(orderEntity))
+                .flatMap(orderRepository::save)
                 .map(orderMapper::fromInfrastructureToDomain)
                 .onErrorMap(
                         ex -> !(ex instanceof EntityNotFoundException) && !(ex instanceof InvalidStateTransitionException),
@@ -60,6 +58,21 @@ public class OrdersGatewayImpl implements OrdersGateway {
     private Mono<CartEntity> findCartOrFail(Long cartId){
         return cartRepository.findById(cartId)
                 .switchIfEmpty(Mono.error(new EntityNotFoundException("Cart",cartId.toString(),"Order")));
+    }
+
+    private Mono<CartEntity> ensureCartStateIsConverted(CartEntity cart){
+        if(cart.getCartStateID() == CART_STATE_CONVERTED){
+            return Mono.just(cart);
+        }
+
+        return Mono.error(
+                new InvalidStateTransitionException(
+                        "Cart",
+                        CartState.CART_STATES.get(cart.getCartStateID().intValue()),
+                        "Order",
+                        "Order"
+                )
+        );
     }
 
     private Mono<OrderEntity> buildOrderEntity(CartEntity cart, Long cartId){
