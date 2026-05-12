@@ -43,7 +43,6 @@ public class OrdersGatewayImpl implements OrdersGateway {
 
     @Override
     public Mono<Order> createNewOrder(Long cartID) {
-        Long cartState = 0L;
         return findCartOrFail(cartID)
                 .flatMap(this::ensureCartStateIsConverted)
                 .flatMap(cartEntity -> buildOrderEntity(cartEntity, cartID))
