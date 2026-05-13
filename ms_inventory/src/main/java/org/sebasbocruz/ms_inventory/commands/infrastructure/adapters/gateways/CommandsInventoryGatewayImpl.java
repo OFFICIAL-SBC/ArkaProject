@@ -93,17 +93,17 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
 
     public Mono<Warehouse> doesWarehouseExist(Long warehouseId) {
         return warehouseRepository.findById(warehouseId)
-                .switchIfEmpty(Mono.error(new EntityNotFoundException("Warehouse with id "+warehouseId+" was not found")))
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Warehouse",warehouseId.toString())))
                 .flatMap(
                         warehouseEntity -> {
                             return addressRepository.findById(warehouseEntity.getAddressId())
-                                    .switchIfEmpty(Mono.error(new EntityNotFoundException("Address with ID"+warehouseEntity.getAddressId()+" was not found")))
+                                    .switchIfEmpty(Mono.error(new EntityNotFoundException("Address",warehouseEntity.getAddressId().toString())))
                                     .flatMap(addressEntity ->
                                         Mono.zip(
                                                 countryRepository.findById(addressEntity.getCountryId())
-                                                        .switchIfEmpty(Mono.error(new EntityNotFoundException("Country with ID"+addressEntity.getCountryId()+" was not found"))),
+                                                        .switchIfEmpty(Mono.error(new EntityNotFoundException("Country",addressEntity.getCountryId().toString()))),
                                                 cityRepository.findById(addressEntity.getCityId())
-                                                        .switchIfEmpty(Mono.error(new EntityNotFoundException("Country with ID"+addressEntity.getCityId()+" was not found")))
+                                                        .switchIfEmpty(Mono.error(new EntityNotFoundException("City",addressEntity.getCityId().toString())))
                                         ).map(tuple -> {
                                             CountryEntity countryEntity = tuple.getT1();
                                             CityEntity cityEntity = tuple.getT2();

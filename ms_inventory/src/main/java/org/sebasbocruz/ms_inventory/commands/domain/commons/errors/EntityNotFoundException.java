@@ -5,15 +5,36 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
-@AllArgsConstructor
+import java.util.Collections;
+import java.util.Map;
+
+
 @Getter
 @Setter
 public class EntityNotFoundException extends DomainException {
 
-    private String entityMessage;
+    private String resourceType;
+    private String identifier;
+
+    public EntityNotFoundException(String resourceType, String identifier){
+        super(String.format("%s with identifier (ID) '%s' was not found",resourceType, identifier),"Inventory");
+        this.resourceType = resourceType;
+        this.identifier = identifier;
+    }
+
 
     @Override
     public HttpStatus status() {
         return HttpStatus.NOT_FOUND;
+    }
+
+    @Override
+    public String code() {
+        return "RESORCE_NOT_FOUND";
+    }
+
+    @Override
+    public Map<String, Object> extraAttributes(){
+        return Map.of("ResourceType",this.resourceType, "identifier",this.resourceType);
     }
 }

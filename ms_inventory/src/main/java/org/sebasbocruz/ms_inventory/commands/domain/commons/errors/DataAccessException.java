@@ -8,15 +8,18 @@ import org.springframework.http.HttpStatus;
 @Setter
 public class DataAccessException extends DomainException{
 
-    private String entityMessage;
-
-    // TODO: I need to add the actual message of the error and its details in the response
-    public DataAccessException(String errorMessage, Throwable ex){
-        this.entityMessage = errorMessage;
+    public DataAccessException(){
+        super("","");
     }
+
 
     @Override
     public HttpStatus status() {
-        return HttpStatus.INTERNAL_SERVER_ERROR;
+        return null;
+    }
+
+    @Override
+    public String code() {
+        return "";
     }
 }
