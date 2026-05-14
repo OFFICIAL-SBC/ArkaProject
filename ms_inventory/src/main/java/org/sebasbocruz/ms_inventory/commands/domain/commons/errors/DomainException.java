@@ -31,7 +31,7 @@ public abstract class DomainException extends RuntimeException {
 
     protected DomainException(String message, String domain, Throwable rawError){
         // ! I use this when a lower-level exception triggered mine.
-        // * Something outsidE my domain EXPLODED (Database, HTTP CLIENT, CASTING ERROR, TIMEOUT)
+        // * Something outside my domain EXPLODED (Database, HTTP CLIENT, CASTING ERROR, TIMEOUT)
         // * So with this I am **WRAPPING IT IN A MEANINGFUL DOMAIN EXCEPTION** instead of just
         // * leaking the raw technical error to the client
 
@@ -47,8 +47,7 @@ public abstract class DomainException extends RuntimeException {
 
 
     public Map<String, Object> extraAttributes(){
-        // ! This function is OVERWRITE IT on each subclass of the class DomainException
-
+        // ! This function is OVERWRITE IT on each subclass of the abstract class DomainException
         return Collections.emptyMap();
     }
 

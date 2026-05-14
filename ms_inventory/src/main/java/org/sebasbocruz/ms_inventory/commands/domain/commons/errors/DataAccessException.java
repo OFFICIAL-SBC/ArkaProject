@@ -4,22 +4,31 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
+import java.util.Map;
+
 @Getter
 @Setter
 public class DataAccessException extends DomainException{
 
-    public DataAccessException(){
-        super("","");
-    }
+    private final String operation;
 
+    public DataAccessException(String operation, Throwable rawError){
+        super(String.format("Data access failed during operation %s",operation),"ms_inventory",rawError);
+        this.operation = operation;
+    }
 
     @Override
     public HttpStatus status() {
-        return null;
+        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
     @Override
     public String code() {
-        return "";
+        return "DATA_ACCESS_FAILURE";
+    }
+
+    @Override
+    public Map<String, Object> extraAttributes(){
+        return Map.of("operation",operation);
     }
 }

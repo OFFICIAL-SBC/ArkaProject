@@ -137,9 +137,7 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                     int updatedStock = inventoryEntity.getAvailableStock() - quantity;
 
                     if(updatedStock <= inventoryEntity.getThresholdStock()){
-                        return Mono.error(new InsufficientStockException(
-                                "Insufficient stock for product ID " + productId +
-                                        ". Requested: " + quantity + ", Available: " + inventoryEntity.getAvailableStock()));
+                        return Mono.error(new InsufficientStockException(productId.toString(),inventoryEntity.getThresholdStock(),quantity));
                     }
 
                     inventoryEntity.setAvailableStock(updatedStock);
@@ -205,9 +203,7 @@ public class CommandsInventoryGatewayImpl implements CommandsInventoryGateway {
                     int updatedStock = inventoryEntity.getAvailableStock() - quantityDifference;
 
                     if(updatedStock >= inventoryEntity.getThresholdStock()){
-                        return Mono.error(new InsufficientStockException(
-                                "Insufficient stock for product ID " + productId +
-                                        ". Requested: " + quantityDifference + ", Available: " + inventoryEntity.getAvailableStock()));
+                        return Mono.error(new InsufficientStockException(productId.toString(),inventoryEntity.getAvailableStock(),quantityDifference));
                     }
 
                     return inventoryRepository.save(inventoryEntity)
