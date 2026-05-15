@@ -277,7 +277,7 @@ ALTER SEQUENCE inventory.inventory_inventory_id_seq RESTART WITH 1;
  SELECT * FROM inventory.inventory;
  SELECT * FROM inventory.inventory WHERE availablestock < thresholdstock;
 
-
+SELECT * FROM  inventory.inventory WHERE product_id = 1;
 
  -- inventory.warehouse
  SELECT * FROM inventory.warehouse;

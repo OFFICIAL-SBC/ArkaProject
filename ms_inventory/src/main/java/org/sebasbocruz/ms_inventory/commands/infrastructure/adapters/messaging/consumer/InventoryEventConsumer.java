@@ -55,7 +55,7 @@ public class InventoryEventConsumer {
      *
      * WHY throws Exception?
      * - Jackson parsing methods throw CHECKED exceptions
-     * - Declaring throws defers error handling to the caller 💀💀💀💀💀
+     * - Declaring throws DEFERS error handling to the caller 💀💀💀💀💀
      * - In reactive code, thrown exceptions are converted to onError signals
      *
      * This is NOT an alternative to try/catch:

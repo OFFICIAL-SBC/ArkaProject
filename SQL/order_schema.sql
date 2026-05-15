@@ -55,12 +55,9 @@ CREATE TABLE IF NOT EXISTS orders.orders(
     order_id       BIGSERIAL PRIMARY KEY,
     client_id      BIGINT      NOT NULL,
     user_id        BIGINT      NOT NULL,
-    warehouse_id   BIGINT      NOT NULL,
     order_state_id BIGINT      NOT NULL,
     currency_id    BIGINT      NOT NULL,
     total          NUMERIC(8,2)  NOT NULL,
-    taxes          NUMERIC(4,2)  NOT NULL,
-    discount       NUMERIC(4,2)  NOT NULL,
     created_at     TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
 	CONSTRAINT fk_orders_order_state
@@ -69,8 +66,6 @@ CREATE TABLE IF NOT EXISTS orders.orders(
         FOREIGN KEY (client_id)    REFERENCES users.client(client_id),
     CONSTRAINT fk_orders_user
         FOREIGN KEY (user_id)      REFERENCES users.users(user_id),
-    CONSTRAINT fk_orders_warehouse
-        FOREIGN KEY (warehouse_id) REFERENCES inventory.warehouse(warehouse_id),
     CONSTRAINT fk_orders_currency
         FOREIGN KEY (currency_id)  REFERENCES public.currency(currency_id)
 );
@@ -84,7 +79,7 @@ CREATE TABLE orders.bill (
     currency_id     BIGINT   NOT NULL,
     user_id         BIGINT   NOT NULL,
     reference_number VARCHAR(255) NOT NULL,
-    value            NUMERIC(8,2) NOT NULL,
+    total_value      NUMERIC(8,2) NOT NULL,
     url_pdf          VARCHAR(500),
     created_at       TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
@@ -101,13 +96,17 @@ CREATE TABLE orders.order_detail (
     order_detail_id BIGSERIAL PRIMARY KEY,
     order_id        BIGINT   NOT NULL,
     product_id      BIGINT   NOT NULL,
-    amount          INTEGER  NOT NULL,
+	warehouse_id    BIGINT    NOT NULL,
+    units           INTEGER  NOT NULL,
+	total_value     NUMERIC(8,2)  NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_order_detail_order
         FOREIGN KEY (order_id)   REFERENCES orders.orders(order_id),
     CONSTRAINT fk_order_detail_product
-        FOREIGN KEY (product_id) REFERENCES product.product(product_id)
+        FOREIGN KEY (product_id) REFERENCES product.product(product_id),
+	CONSTRAINT fk_order_detail_warehouse 
+		FOREIGN KEY (warehouse_id) REFERENCES inventory.warehouse(warehouse_id)
 );
 
 
@@ -122,3 +121,10 @@ SELECT * FROM orders.bill;
 SELECT * FROM orders.order_detail;
 
 SELECT * FROM public.currency;
+
+
+-- DELETE AND FROP DATA AND TABLES
+DELETE FROM orders.orders;
+ALTER SEQUENCE orders.orders_order_id_seq RESTART WITH 1;
+
+DROP TABLE orders.order_detail;

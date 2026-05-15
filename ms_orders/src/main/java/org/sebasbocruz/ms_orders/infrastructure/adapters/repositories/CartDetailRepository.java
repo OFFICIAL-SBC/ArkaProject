@@ -1,6 +1,6 @@
 package org.sebasbocruz.ms_orders.infrastructure.adapters.repositories;
 
-import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Order.CartDetailEntity;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Cart.CartDetailEntity;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Flux;
 

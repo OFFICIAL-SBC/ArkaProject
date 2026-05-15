@@ -8,14 +8,11 @@ import org.sebasbocruz.ms_orders.domain.commons.states.Cart.CartState;
 import org.sebasbocruz.ms_orders.domain.context.orders.Aggregate.Order;
 import org.sebasbocruz.ms_orders.domain.context.orders.Gateways.OrdersGateway;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.Mappers.OrderMapper;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Order.CartDetailEntity;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Order.CartEntity;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Cart.CartDetailEntity;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Cart.CartEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Order.OrderEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Product.ProductEntity;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.repositories.CartDetailRepository;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.repositories.CartRepository;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.repositories.OrderRepository;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.repositories.ProductRepository;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.repositories.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -34,6 +31,7 @@ public class OrdersGatewayImpl implements OrdersGateway {
     private final CartDetailRepository cartDetailRepository;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final InventoryRepository inventoryRepository;
 
     private final OrderMapper orderMapper;
 
@@ -93,7 +91,6 @@ public class OrdersGatewayImpl implements OrdersGateway {
         return OrderEntity.builder()
                 .client_id(cart.getUserId())
                 .user_id(cart.getUserId())
-                .warehouse_id(DEFAULT_WAREHOUSE_ID)
                 .order_state_id(INITIAL_ORDER_STATE_ID)
                 .currency_id(cart.getCurrencyID())
                 .total_price(totalPrice)

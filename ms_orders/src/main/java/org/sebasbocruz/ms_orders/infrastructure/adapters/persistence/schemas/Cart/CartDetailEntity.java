@@ -1,4 +1,4 @@
-package org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Order;
+package org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Cart;
 
 
 import lombok.*;
