@@ -24,7 +24,6 @@ public class ErrorResponse extends DefaultErrorAttributes {
             errorMap.put("error", ex.status().getReasonPhrase());
             errorMap.put("code", ex.code());
             errorMap.put("domain", ex.getDomain());
-            errorMap.put("timestamp", ex.getTimestamp().toString());
 
             // each subclass can contribute its own fields
             errorMap.putAll(ex.extraAttributes());

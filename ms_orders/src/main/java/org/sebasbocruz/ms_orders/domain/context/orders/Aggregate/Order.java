@@ -23,14 +23,10 @@ public class Order {
     private Long orderId;
     private  Long clientId;
     private  Long userId;
-    private  Long warehouseId;
     private  Long currencyId;
 
     private OrderState state;
     private double total;
-    private double taxes;
-    private double taxPercentage;
-    private double discount;
 
     private  Instant createdAt;
     private Instant updatedAt;
@@ -49,9 +45,6 @@ public class Order {
             Long currencyId,
             OrderState state,
             double total,
-            double taxes,
-            double taxPercentage,
-            double discount,
             Instant createdAt,
             Instant updatedAt
     ) {
@@ -63,13 +56,9 @@ public class Order {
         this.orderId = orderId;
         this.clientId = clientId;
         this.userId = userId;
-        this.warehouseId = warehouseId;
         this.currencyId = currencyId;
         this.state = state;
         this.total = total;
-        this.taxes = taxes;
-        this.taxPercentage = taxPercentage;
-        this.discount = discount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -91,9 +80,6 @@ public class Order {
                 currencyId,
                 OrderState.PENDING,
                 0,
-                0,
-                0,
-                0,
                 now,
                 now
         );
@@ -111,15 +97,12 @@ public class Order {
             Long currencyId,
             OrderState state,
             double total,
-            double taxes,
-            double taxPercentage,
-            double discount,
             Instant createdAt,
             Instant updatedAt,
             List<OrderDetail> details
     ) {
         Order order = new Order(orderId, clientId, userId, warehouseId, currencyId,
-                state, total, taxes,  discount,taxPercentage, createdAt, updatedAt);
+                state, total, createdAt, updatedAt);
         order.details.addAll(details);
         return order;
     }
@@ -147,7 +130,6 @@ public class Order {
 
     public void applyDiscount(double discount) {
         if (discount< 0) throw new IllegalArgumentException("Discount cannot be negative");
-        this.discount = discount;
         recalculateTotals();
         touch();
     }
@@ -173,9 +155,9 @@ public class Order {
                 .map(OrderDetail::getLineTotal)
                 .reduce(0.0, Double::sum);
 
-        double taxableBase = subtotal - discount;
-        this.taxes = taxableBase*this.taxPercentage;
-        this.total = taxableBase+taxes;
+//        double taxableBase = subtotal - discount;
+//        this.taxes = taxableBase*this.taxPercentage;
+//        this.total = taxableBase+taxes;
     }
 
     private void touch() {

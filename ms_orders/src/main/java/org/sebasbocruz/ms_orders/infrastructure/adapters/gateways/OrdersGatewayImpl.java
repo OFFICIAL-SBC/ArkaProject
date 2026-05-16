@@ -5,6 +5,7 @@ import org.sebasbocruz.ms_orders.domain.commons.errors.DataAccessException;
 import org.sebasbocruz.ms_orders.domain.commons.errors.EntityNotFoundException;
 import org.sebasbocruz.ms_orders.domain.commons.errors.InvalidStateTransitionException;
 import org.sebasbocruz.ms_orders.domain.commons.states.Cart.CartState;
+import org.sebasbocruz.ms_orders.domain.commons.states.Order.OrderState;
 import org.sebasbocruz.ms_orders.domain.context.orders.Aggregate.Order;
 import org.sebasbocruz.ms_orders.domain.context.orders.Gateways.OrdersGateway;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.Mappers.OrderMapper;
@@ -32,20 +33,19 @@ public class OrdersGatewayImpl implements OrdersGateway {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
+    private final OrderStateRepository orderStateRepository;
 
     private final OrderMapper orderMapper;
 
     private static final int CART_STATE_CONVERTED = 5;
-    private static final long DEFAULT_WAREHOUSE_ID = 1L;
-    private static final long INITIAL_ORDER_STATE_ID = 1L;
 
     @Override
     public Mono<Order> createNewOrder(Long cartID) {
         return findCartOrFail(cartID)
                 .flatMap(this::ensureCartStateIsConverted)
-                .flatMap(cartEntity -> buildOrderEntity(cartEntity, cartID))
+                .flatMap(this::buildOrderEntity)
                 .flatMap(orderRepository::save)
-                .map(orderMapper::fromInfrastructureToDomain)
+                .flatMap(this::buildDomainOrderSavedWithStatus)
                 .onErrorMap(
                         ex -> !(ex instanceof EntityNotFoundException) && !(ex instanceof InvalidStateTransitionException),
                         ex -> new DataAccessException("CREATE","Order",ex)
@@ -72,10 +72,11 @@ public class OrdersGatewayImpl implements OrdersGateway {
         );
     }
 
-    private Mono<OrderEntity> buildOrderEntity(CartEntity cart, Long cartId){
-        return cartDetailRepository.findCartDetailEntitiesByCartID(cartId)
+    private Mono<OrderEntity> buildOrderEntity(CartEntity cart){
+        return cartDetailRepository.findCartDetailEntitiesByCartID(cart.getCartId())
                 .collectList()
-                .flatMap(details -> loadProductsByID(details).map(result -> assembleOrder(cart, details, result)));
+                .flatMap(details -> loadProductsByID(details)
+                        .map(productMap -> assembleOrder(cart, details, productMap)));
     }
 
     private Mono<Map<Long, ProductEntity>> loadProductsByID(List<CartDetailEntity> details){
@@ -91,10 +92,16 @@ public class OrdersGatewayImpl implements OrdersGateway {
         return OrderEntity.builder()
                 .client_id(cart.getUserId())
                 .user_id(cart.getUserId())
-                .order_state_id(INITIAL_ORDER_STATE_ID)
                 .currency_id(cart.getCurrencyID())
                 .total_price(totalPrice)
                 .build();
+
+    }
+
+    private Mono<Order> buildDomainOrderSavedWithStatus(OrderEntity orderSaved){
+
+        return orderStateRepository.findById(orderSaved.getOrder_state_id())
+                .map(orderStateEntity -> orderMapper.fromInfrastructureToDomain(orderSaved,OrderState.valueOf(orderStateEntity.getOrderState())));
 
     }
 }

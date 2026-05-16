@@ -40,13 +40,6 @@ public class OrderEntity {
     private double total_price;
 
 
-    @Column("taxes")
-    private double taxes;
-
-
-    @Column("discount")
-    private double discount;
-
     @CreatedDate
     @Column("created_at")
     private Instant createdAt;

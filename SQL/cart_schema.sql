@@ -18,38 +18,8 @@ SHOW search_path;
 -- =============================
 -- ENUMS
 -- =============================
-CREATE TYPE user_role AS ENUM ('ADMIN', 'CUSTOMER', 'EMPLOYEE');
 CREATE TYPE cart_state_enum AS ENUM ('OPEN', 'INACTIVE', 'ABANDONED', 'CANCELLED','CONVERTED');
 CREATE TYPE currency_enum AS ENUM ('USD', 'ARS', 'COP', 'BRL','CLP');
-
-
--- =============================
--- users shcema
--- =============================
-
-CREATE TABLE IF NOT EXISTS users.client(
-	client_id BIGSERIAL PRIMARY KEY,
-	nit VARCHAR(30) NOT NULL,
-	phone VARCHAR(30) NOT NULL,
-	email_billing VARCHAR(30) NOT NULL,
-	created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS users.users (
-    user_id       BIGSERIAL PRIMARY KEY,
-    client_id     BIGINT REFERENCES users.client(client_id) ON DELETE CASCADE, -- optional FK not shown
-    email         VARCHAR(255) NOT NULL UNIQUE,
-    full_name     VARCHAR(255) NOT NULL,
-    password_hash TEXT        NOT NULL,            -- store hash, not plaintext
-    role_user    user_role NOT NULL DEFAULT 'CUSTOMER',            
-    phone         VARCHAR(30),
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-
-
 
 -- =============================
 -- public.currency  (shared lookup)
@@ -106,28 +76,6 @@ CREATE TABLE IF NOT EXISTS cart.cart_detail (
 -- =============================================================================================================================================================
 -- Iserting dummy data
 -- =============================================================================================================================================================
-
--- Users
-
-INSERT INTO users.client (nit, phone, email_billing)
-VALUES 
-('900123456-7', '+57-3011111111', 'billing@acme.com'),
-('901987654-3', '+57-3022222222', 'billing@globex.com');
-
-
-INSERT INTO users.users (client_id, email, full_name, password_hash, role_user, phone)
-VALUES 
-(1, 'admin@acme.com', 'Alice Admin', 'hashed_pwd_1', 'ADMIN', '+57-3011111111'),
-(1, 'employee@acme.com', 'Eve Employee', 'hashed_pwd_2', 'EMPLOYEE', '+57-3011111122'),
-(2, 'customer@globex.com', 'Charlie Customer', 'hashed_pwd_3', 'CUSTOMER', '+57-3022222222');
-
-INSERT INTO users.users (client_id, email, full_name, password_hash, role_user, phone)
-VALUES 
-(1, 'sebas@acme.com', 'Sebas Bonilla', 'hashed_pwd_1', 'ADMIN', '+57-3011121111'),
-(1, 'cata@acme.com', 'Catalina Bonilla', 'hashed_pwd_2', 'EMPLOYEE', '+57-3011411122'),
-(2, 'gloria@globex.com', 'Gloria Edith Cruz', 'hashed_pwd_3', 'CUSTOMER', '+57-3022128222');
-
-SELECT * FROM users.users;
 
 -- Public
 

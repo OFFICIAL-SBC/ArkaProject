@@ -70,8 +70,6 @@ CREATE TABLE IF NOT EXISTS orders.orders(
         FOREIGN KEY (currency_id)  REFERENCES public.currency(currency_id)
 );
 
-SELECT * FROM orders.orders;
-
 -- 4. BILL
 CREATE TABLE orders.bill (
     bill_id         BIGSERIAL PRIMARY KEY,
