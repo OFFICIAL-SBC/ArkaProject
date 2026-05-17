@@ -38,6 +38,7 @@ public class OrdersGatewayImpl implements OrdersGateway {
     private final OrderMapper orderMapper;
 
     private static final int CART_STATE_CONVERTED = 5;
+    private static final long ORDER_STATE_PENDING = 1L;
 
     @Override
     public Mono<Order> createNewOrder(Long cartID) {
@@ -92,6 +93,7 @@ public class OrdersGatewayImpl implements OrdersGateway {
         return OrderEntity.builder()
                 .client_id(cart.getUserId())
                 .user_id(cart.getUserId())
+                .order_state_id(ORDER_STATE_PENDING)
                 .currency_id(cart.getCurrencyID())
                 .total_price(totalPrice)
                 .build();
