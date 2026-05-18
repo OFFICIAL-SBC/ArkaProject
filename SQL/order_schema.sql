@@ -108,6 +108,17 @@ CREATE TABLE orders.order_detail (
 );
 
 
+-- 6. Shipment
+CREATE TABLE IF NOT EXISTS orders.shipment (
+	shipment_id BIGSERIAL PRIMARY KEY, 
+	order_id BIGINT REFERENCES orders.orders(order_id)ON DELETE CASCADE,
+	warehouse_id BIGINT REFERENCES inventory.warehouse(warehouse_id),
+	distance_km NUMERIC(8,2),
+	estimated_arrival TIMESTAMPTZ
+);
+
+-- order.estimated_arrival = MAX(shipment.estimated_arrival)
+
 -- ======================================================================================
 -- Queries
 -- ======================================================================================
