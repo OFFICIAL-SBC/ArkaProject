@@ -9,7 +9,7 @@ import java.util.List;
 // ? ONE PUBLIC TOP-LEVEL CLASS -> Here the file must match that class name
 // ? Additional NON-PUBLIC classes are allowed in the same file
 
-public record OrderResponse(
+public record OrderResponseDTO(
         Long orderId,
         String status,                 // resolved name, not order_state_id
         String currencyCode,           // ISO 4217, not currency_id
@@ -22,7 +22,7 @@ public record OrderResponse(
 
 record DeliveryEstimate(
         OffsetDateTime earliest,
-        OffsetDateTime lates
+        OffsetDateTime latest
 ){}
 
 

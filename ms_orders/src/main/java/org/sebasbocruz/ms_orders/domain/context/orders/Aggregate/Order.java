@@ -8,6 +8,8 @@ import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.Ord
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderCreatedEvent;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderPaidEvent;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.parent.DomainOrderEvent;
+import org.sebasbocruz.ms_orders.domain.context.orders.entity.Currency;
+import org.sebasbocruz.ms_orders.domain.context.orders.entity.DeliveryAddress;
 import org.sebasbocruz.ms_orders.domain.context.orders.entity.OrderDetail;
 
 import java.time.Instant;
@@ -17,15 +19,16 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class Order {
 
     private Long orderId;
     private  Long clientId;
     private  Long userId;
-    private  Long currencyId;
-
+    private final DeliveryAddress deliveryAddress;
+    private final Currency currency;
     private OrderState state;
+    private final List<Shipment> shipments;
+
     private double total;
 
     private  Instant createdAt;
@@ -33,7 +36,7 @@ public class Order {
 
     private final List<OrderDetail> details = new ArrayList<>();
 
-    // domain events raised by this aggregate
+    // ! domain events raised by this aggregate
     private final List<DomainOrderEvent> domainEvents = new ArrayList<>();
 
     // --------- ctor is private: use factory methods ----------
@@ -41,26 +44,27 @@ public class Order {
             Long orderId,
             Long clientId,
             Long userId,
-            Long warehouseId,
-            Long currencyId,
+            DeliveryAddress address,
+            Currency currency,
+            List<Shipment> shipments,
             OrderState state,
             double total,
-            Instant createdAt,
-            Instant updatedAt
+            Instant createdAt
     ) {
 
-        if (clientId == null || userId == null || warehouseId == null || currencyId == null) {
-            throw new IllegalArgumentException("Order requires client, user, warehouse and currency");
+        if (clientId == null || userId == null ) {
+            throw new IllegalArgumentException("Order requires client and user");
         }
 
         this.orderId = orderId;
         this.clientId = clientId;
         this.userId = userId;
-        this.currencyId = currencyId;
+        this.currency = currency;
         this.state = state;
         this.total = total;
+        this.shipments = new ArrayList<>(shipments);
         this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.updatedAt = createdAt;
     }
 
     // --------- FACTORY METHODS ----------
