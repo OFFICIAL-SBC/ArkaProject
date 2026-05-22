@@ -1,20 +1,23 @@
 package org.sebasbocruz.ms_orders.domain.context.orders.Aggregate;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.sebasbocruz.ms_orders.domain.commons.states.Order.OrderState;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderCancelledEvent;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderCreatedEvent;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderPaidEvent;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.parent.DomainOrderEvent;
-import org.sebasbocruz.ms_orders.domain.context.orders.entity.Currency;
-import org.sebasbocruz.ms_orders.domain.context.orders.entity.DeliveryAddress;
+import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.Currency;
+import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.DeliveryAddress;
+import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.DeliveryEstimate;
 import org.sebasbocruz.ms_orders.domain.context.orders.entity.OrderDetail;
+import org.sebasbocruz.ms_orders.domain.context.orders.entity.Shipment;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Getter
@@ -34,8 +37,6 @@ public class Order {
     private  Instant createdAt;
     private Instant updatedAt;
 
-    private final List<OrderDetail> details = new ArrayList<>();
-
     // ! domain events raised by this aggregate
     private final List<DomainOrderEvent> domainEvents = new ArrayList<>();
 
@@ -46,9 +47,8 @@ public class Order {
             Long userId,
             DeliveryAddress address,
             Currency currency,
-            List<Shipment> shipments,
             OrderState state,
-            double total,
+            List<Shipment> shipments,
             Instant createdAt
     ) {
 
@@ -61,82 +61,13 @@ public class Order {
         this.userId = userId;
         this.currency = currency;
         this.state = state;
-        this.total = total;
         this.shipments = new ArrayList<>(shipments);
+        this.deliveryAddress = address;
+        calculateTotals();
         this.createdAt = createdAt;
         this.updatedAt = createdAt;
     }
 
-    // --------- FACTORY METHODS ----------
-
-    public static Order createNew(
-            Long clientId,
-            Long userId,
-            Long warehouseId,
-            Long currencyId
-    ) {
-        Instant now = Instant.now();
-        Order order = new Order(
-                null,
-                clientId,
-                userId,
-                warehouseId,
-                currencyId,
-                OrderState.PENDING,
-                0,
-                now,
-                now
-        );
-
-        order.registerEvent(new OrderCreatedEvent(order.orderId, now));
-        return order;
-    }
-
-    // rehydrate from persistence
-    public static Order restore(
-            Long orderId,
-            Long clientId,
-            Long userId,
-            Long warehouseId,
-            Long currencyId,
-            OrderState state,
-            double total,
-            Instant createdAt,
-            Instant updatedAt,
-            List<OrderDetail> details
-    ) {
-        Order order = new Order(orderId, clientId, userId, warehouseId, currencyId,
-                state, total, createdAt, updatedAt);
-        order.details.addAll(details);
-        return order;
-    }
-
-    // --------- BEHAVIOR ----------
-
-    public void addItem(Long productId, int amount, double unitPrice) {
-        if (state != OrderState.PENDING) {
-            throw new IllegalStateException("Can only modify items when order is PENDING");
-        }
-        OrderDetail detail = new OrderDetail(null, productId, amount, unitPrice);
-        this.details.add(detail);
-        recalculateTotals();
-        touch();
-    }
-
-    public void removeItem(Long productId) {
-        if (state != OrderState.PENDING) {
-            throw new IllegalStateException("Can only modify items when order is PENDING");
-        }
-        details.removeIf(d -> d.getProductId().equals(productId));
-        recalculateTotals();
-        touch();
-    }
-
-    public void applyDiscount(double discount) {
-        if (discount< 0) throw new IllegalArgumentException("Discount cannot be negative");
-        recalculateTotals();
-        touch();
-    }
 
     public void markAsPaid() {
         if (state != OrderState.PENDING) {
@@ -154,11 +85,12 @@ public class Order {
         registerEvent(new OrderCancelledEvent(orderId, reason, Instant.now()));
     }
 
-    private void recalculateTotals() {
-        double subtotal = details.stream()
-                .map(OrderDetail::getLineTotal)
+    private void calculateTotals() {
+        double subtotal = shipments.stream()
+                .map(Shipment::subtotal)
                 .reduce(0.0, Double::sum);
 
+        this.total = subtotal;
 //        double taxableBase = subtotal - discount;
 //        this.taxes = taxableBase*this.taxPercentage;
 //        this.total = taxableBase+taxes;
@@ -170,6 +102,19 @@ public class Order {
 
     private void registerEvent(DomainOrderEvent event) {
         this.domainEvents.add(event);
+    }
+
+    public DeliveryEstimate calculateEstimation(){
+        List<Instant> orderded = this.shipments.stream()
+                .map(shipment -> shipment.getEstimatedArrival())
+                .sorted()
+                .toList();
+
+        return new DeliveryEstimate(
+                orderded.getFirst().atOffset(ZoneOffset.UTC),
+                orderded.getLast().atOffset(ZoneOffset.UTC)
+        );
+
     }
 
 

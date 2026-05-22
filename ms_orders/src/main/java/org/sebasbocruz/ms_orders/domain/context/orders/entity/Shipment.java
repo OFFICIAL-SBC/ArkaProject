@@ -1,8 +1,15 @@
 package org.sebasbocruz.ms_orders.domain.context.orders.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+import org.sebasbocruz.ms_orders.domain.commons.states.Order.ShipmentStatus;
+import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.WarehouseOrigin;
+
 import java.time.Instant;
 import java.util.List;
 
+@Getter
+@Setter
 public class Shipment {
     private final Long shipmentId;
     private final Long warehouseId;
@@ -18,24 +25,26 @@ public class Shipment {
             WarehouseOrigin origin,
             double distance,
             Instant estimatedArrival,
-            List<ShipmentItem> items){
+            List<ShipmentItem> items
+    ){
 
-        if(items.isEmpty()) throw IllegalArgumentException("Empty Shipment");
+        if(items.isEmpty()) throw new IllegalArgumentException("Empty Shipment");
         this.shipmentId = shipmentId;
         this.warehouseId = warehouseId;
+        this.origin = origin;
+        this.distance = distance;
+        this.items = List.copyOf(items);
+        this.status = ShipmentStatus.PREPARING;
+        this.estimatedArrival = estimatedArrival;
+    }
+
+    public double subtotal(){
+        return items.stream()
+                .map( shipmentItem -> shipmentItem.quantity()*shipmentItem.unitPrice())
+                .reduce(0.0,(a,b) -> a + b);
     }
 
 }
 
 
-record ShipmentItem (
-     Long id,
-     Long productId,// snapshot
-     int quantity,
-     double unitPrice
-){}
 
-
-record WarehouseOrigin(String displayName, String city, String country) {}
-
- enum ShipmentStatus { PREPARING, IN_TRANSIT, DELIVERED, CANCELLED }

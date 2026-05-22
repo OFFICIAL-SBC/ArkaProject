@@ -1,4 +1,4 @@
-package org.sebasbocruz.ms_orders.domain.context.orders.entity;
+package org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects;
 
 import java.math.BigDecimal;
 
