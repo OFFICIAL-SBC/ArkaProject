@@ -2,21 +2,22 @@ package org.sebasbocruz.ms_orders.domain.context.orders.Aggregate;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.sebasbocruz.ms_orders.domain.commons.errors.InvalidStateTransitionException;
 import org.sebasbocruz.ms_orders.domain.commons.states.Order.OrderState;
+import org.sebasbocruz.ms_orders.domain.commons.states.Order.ShipmentStatus;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderCancelledEvent;
-import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderCreatedEvent;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.children.OrderPaidEvent;
 import org.sebasbocruz.ms_orders.domain.context.orders.DomainEvents.parent.DomainOrderEvent;
 import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.Currency;
 import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.DeliveryAddress;
 import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.DeliveryEstimate;
-import org.sebasbocruz.ms_orders.domain.context.orders.entity.OrderDetail;
 import org.sebasbocruz.ms_orders.domain.context.orders.entity.Shipment;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -40,7 +41,7 @@ public class Order {
     // ! domain events raised by this aggregate
     private final List<DomainOrderEvent> domainEvents = new ArrayList<>();
 
-    // --------- ctor is private: use factory methods ----------
+
     public Order(
             Long orderId,
             Long clientId,
@@ -71,7 +72,7 @@ public class Order {
 
     public void markAsPaid() {
         if (state != OrderState.PENDING) {
-            throw new IllegalStateException("Only PENDING orders can be paid");
+            throw new InvalidStateTransitionException("Order",state.name(),"PAID","ms_order");
         }
         this.state = OrderState.PAID;
         touch();
@@ -91,36 +92,47 @@ public class Order {
                 .reduce(0.0, Double::sum);
 
         this.total = subtotal;
-//        double taxableBase = subtotal - discount;
-//        this.taxes = taxableBase*this.taxPercentage;
-//        this.total = taxableBase+taxes;
     }
 
-    private void touch() {
-        this.updatedAt = Instant.now();
-    }
+
 
     private void registerEvent(DomainOrderEvent event) {
         this.domainEvents.add(event);
     }
 
     public DeliveryEstimate calculateEstimation(){
-        List<Instant> orderded = this.shipments.stream()
-                .map(shipment -> shipment.getEstimatedArrival())
+        List<Instant> ordered = this.shipments.stream()
+                .map(Shipment::getEstimatedArrival)
                 .sorted()
                 .toList();
 
         return new DeliveryEstimate(
-                orderded.getFirst().atOffset(ZoneOffset.UTC),
-                orderded.getLast().atOffset(ZoneOffset.UTC)
+                ordered.getFirst().atOffset(ZoneOffset.UTC),
+                ordered.getLast().atOffset(ZoneOffset.UTC)
         );
 
     }
 
+    private void recomputeStatus(){
+        if(this.state.equals(OrderState.CANCELLED)) return;
+        Set<ShipmentStatus> states = shipments.stream().map(Shipment::getStatus).collect(Collectors.toUnmodifiableSet());
+        if(states.equals(Set.of(ShipmentStatus.DELIVERED)))
+            this.state  = OrderState.DELIVERED;
+        else if(states.contains(ShipmentStatus.IN_TRANSIT) || states.contains(ShipmentStatus.DELIVERED))
+            this.state = OrderState.SHIPPED;
+        else
+            this.state = OrderState.PROCESSING;
+
+        touch();
+    }
 
     public List<DomainOrderEvent> pullDomainEvents() {
         List<DomainOrderEvent> copy = new ArrayList<>(domainEvents);
         domainEvents.clear();
         return copy;
+    }
+
+    private void touch() {
+        this.updatedAt = Instant.now();
     }
 }

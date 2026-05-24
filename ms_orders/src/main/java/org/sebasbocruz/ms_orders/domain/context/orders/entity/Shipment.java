@@ -2,6 +2,7 @@ package org.sebasbocruz.ms_orders.domain.context.orders.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.sebasbocruz.ms_orders.domain.commons.errors.InvalidStateTransitionException;
 import org.sebasbocruz.ms_orders.domain.commons.states.Order.ShipmentStatus;
 import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.WarehouseOrigin;
 
@@ -17,6 +18,9 @@ public class Shipment {
     private final double distance;
     private Instant estimatedArrival;
     private ShipmentStatus status;
+    private Instant dispatchedAt;
+    private Instant deliveredAt;
+    private Instant preparedAt;
     private final List<ShipmentItem> items;
 
     public Shipment(
@@ -29,6 +33,7 @@ public class Shipment {
     ){
 
         if(items.isEmpty()) throw new IllegalArgumentException("Empty Shipment");
+
         this.shipmentId = shipmentId;
         this.warehouseId = warehouseId;
         this.origin = origin;
@@ -42,6 +47,33 @@ public class Shipment {
         return items.stream()
                 .map( shipmentItem -> shipmentItem.quantity()*shipmentItem.unitPrice())
                 .reduce(0.0,(a,b) -> a + b);
+    }
+
+
+    public void markAsDispatched(){
+        if(this.status != ShipmentStatus.PREPARING){
+            throw new InvalidStateTransitionException("Shipment",this.status.name(),ShipmentStatus.IN_TRANSIT.name(),"ms_order");
+        }
+        this.status = ShipmentStatus.IN_TRANSIT;
+        this.dispatchedAt = Instant.now();
+    }
+
+
+    public void markAsPrepared(){
+        if(this.status != ShipmentStatus.PENDING){
+            throw new InvalidStateTransitionException("Shipment",this.status.name(),ShipmentStatus.PREPARING.name(),"ms_order");
+        }
+
+        this.status = ShipmentStatus.PREPARING;
+        this.preparedAt = Instant.now();
+    }
+
+
+    void markAsDelivered() {
+        if (status != ShipmentStatus.IN_TRANSIT)
+            throw new InvalidStateTransitionException("Shipment",this.status.name(),ShipmentStatus.DELIVERED.name(),"ms_order");
+        this.status = ShipmentStatus.DELIVERED;
+        this.deliveredAt = Instant.now();
     }
 
 }

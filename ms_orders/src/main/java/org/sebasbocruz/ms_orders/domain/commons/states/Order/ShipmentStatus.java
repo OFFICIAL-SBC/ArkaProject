@@ -1,3 +1,3 @@
 package org.sebasbocruz.ms_orders.domain.commons.states.Order;
 
-public enum ShipmentStatus { PREPARING, IN_TRANSIT, DELIVERED, CANCELLED }
+public enum ShipmentStatus { PENDING, PREPARING, IN_TRANSIT, DELIVERED, CANCELLED }

@@ -93,29 +93,78 @@ CREATE TABLE orders.bill (
 CREATE TABLE orders.order_detail (
     order_detail_id BIGSERIAL PRIMARY KEY,
     order_id        BIGINT   NOT NULL,
+	shipment_id     BIGINT NOT NULL,
     product_id      BIGINT   NOT NULL,
-	warehouse_id    BIGINT    NOT NULL,
     units           INTEGER  NOT NULL,
-	total_value     NUMERIC(8,2)  NOT NULL,
+	unit_price      NUMERIC(10,2) NOT NULL,
+	total_value     NUMERIC(10,2)  NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT fk_order_detail_order
-        FOREIGN KEY (order_id)   REFERENCES orders.orders(order_id),
     CONSTRAINT fk_order_detail_product
         FOREIGN KEY (product_id) REFERENCES product.product(product_id),
-	CONSTRAINT fk_order_detail_warehouse 
-		FOREIGN KEY (warehouse_id) REFERENCES inventory.warehouse(warehouse_id)
+	-- composite FK guarantees the detail's shipment belongs to the same order
+	CONSTRAINT fk_order_detail_shipment
+        FOREIGN KEY (shipment_id, order_id)
+        REFERENCES orders.shipment(shipment_id, order_id),
+	CONSTRAINT chk_order_detail_units_pos CHECK (units > 0),
+	CONSTRAINT chk_order_detail_price__nonneg CHECK (unit_price > 0)
 );
 
 
 -- 6. Shipment
-CREATE TABLE IF NOT EXISTS orders.shipment (
-	shipment_id BIGSERIAL PRIMARY KEY, 
-	order_id BIGINT REFERENCES orders.orders(order_id)ON DELETE CASCADE,
-	warehouse_id BIGINT REFERENCES inventory.warehouse(warehouse_id),
-	distance_km NUMERIC(8,2),
-	estimated_arrival TIMESTAMPTZ
+
+CREATE TABLE IF NOT EXISTS orders.shipment(
+	shipment_id		BIGSERIAL PRIMARY KEY,
+	order_id        BIGINT    NOT NULL,
+	warehouse_id    BIGINT    NOT NULL,
+	shipment_status_id BIGINT NOT NULL,
+	origin_name 	VARCHAR(120)  NOT NULL,
+	origin_city 	VARCHAR(120)  NOT NULL,
+	origin_country  CHAR(2)       NOT NULL,
+	distance_km       NUMERIC(8,2),
+	estimated_arrival TIMESTAMPTZ,
+	dispached_at      TIMESTAMPTZ,      
+	delivered_at 	  TIMESTAMPTZ,		
+	created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	updated_at		  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	CONSTRAINT fk_shipment_order
+		FOREIGN KEY (order_id) REFERENCES orders.orders(order_id),
+	CONSTRAINT fk_shipment_warehouse
+		FOREIGN KEY (warehouse_id) REFERENCES inventory.warehouse(warehouse_id),
+	CONSTRAINT fk_shipment_status
+		FOREIGN KEY (shipment_status_id) REFERENCES orders.shipment_status(shipment_status_id),
+	CONSTRAINT uq_shipment_order_warehouse UNIQUE (order_id, warehouse_id),
+    CONSTRAINT uq_shipment_id_order UNIQUE (shipment_id, order_id),
+	CONSTRAINT chk_shipment_distance_nonneg
+        CHECK (distance_km IS NULL OR distance_km >= 0)
 );
+
+CREATE TYPE shipment_state_enum AS ENUM (
+	'PENDING',
+    'PREPARING',
+    'IN_TRANSIT',
+    'DELIVERED',
+	'PROCESSING',
+	'CANCELLED'
+);
+
+CREATE TABLE IF NOT EXISTS orders.shipment_status (
+	shipment_status_id   BIGSERIAL PRIMARY KEY,
+	code 				 shipment_state_enum NOT NULL DEFAULT 'PENDING'
+);
+
+
+INSERT INTO orders.shipment_status (code)
+values
+('PENDING'),
+('PREPARING'),
+('IN_TRANSIT'),
+('DELIVERED'),
+('PROCESSING'),
+('CANCELLED');
+
+SELECT * FROM orders.shipment_status;
+
 
 -- order.estimated_arrival = MAX(shipment.estimated_arrival)
 
@@ -131,9 +180,14 @@ SELECT * FROM orders.order_detail;
 
 SELECT * FROM public.currency;
 
+SELECT * FROM orders.shipment;
+
 
 -- DELETE AND FROP DATA AND TABLES
 DELETE FROM orders.orders;
 ALTER SEQUENCE orders.orders_order_id_seq RESTART WITH 1;
 
 DROP TABLE orders.order_detail;
+DROP TABLE orders.shipment;
+DROP TABLE orders.orders;
+DROP TABLE orders.bill;

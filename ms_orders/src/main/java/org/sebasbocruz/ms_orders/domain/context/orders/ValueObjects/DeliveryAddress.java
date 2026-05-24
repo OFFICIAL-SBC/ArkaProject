@@ -11,9 +11,3 @@ public record DeliveryAddress(
 }
 
 
-record Coordinates(
-        BigDecimal latitude,
-        BigDecimal longitude
-) {
-
-}
