@@ -27,18 +27,14 @@ public class OrderEntity {
     @Column("user_id")
     private Long user_id;
 
-    @Column("warehouse_id")
-    private Long warehouse_id;
-
     @Column("order_state_id")
-    private Long order_state_id;
+    private Long orderStateId;
 
     @Column("currency_id")
-    private Long currency_id;
+    private Long currencyId;
 
     @Column("total")
-    private double total_price;
-
+    private double totalPrice;
 
     @CreatedDate
     @Column("created_at")

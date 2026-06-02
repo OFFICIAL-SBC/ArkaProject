@@ -34,6 +34,7 @@ public class OrdersGatewayImpl implements OrdersGateway {
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     private final OrderStateRepository orderStateRepository;
+    private final UserRepository userRepository;
 
     private final OrderMapper orderMapper;
 
@@ -93,16 +94,16 @@ public class OrdersGatewayImpl implements OrdersGateway {
         return OrderEntity.builder()
                 .client_id(cart.getUserId())
                 .user_id(cart.getUserId())
-                .order_state_id(ORDER_STATE_PENDING)
-                .currency_id(cart.getCurrencyID())
-                .total_price(totalPrice)
+                .currencyId(cart.getCurrencyID())
+                .orderStateId(ORDER_STATE_PENDING)
+                .totalPrice(totalPrice)
                 .build();
 
     }
 
     private Mono<Order> buildDomainOrderSavedWithStatus(OrderEntity orderSaved){
 
-        return orderStateRepository.findById(orderSaved.getOrder_state_id())
+        return orderStateRepository.findById(orderSaved.getOrderStateId())
                 .map(orderStateEntity -> orderMapper.fromInfrastructureToDomain(orderSaved,OrderState.valueOf(orderStateEntity.getOrderState())));
 
     }

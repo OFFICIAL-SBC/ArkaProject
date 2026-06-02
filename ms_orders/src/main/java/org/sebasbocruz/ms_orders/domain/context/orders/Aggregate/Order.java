@@ -13,10 +13,12 @@ import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.DeliveryAddr
 import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.DeliveryEstimate;
 import org.sebasbocruz.ms_orders.domain.context.orders.entity.Shipment;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,7 +52,8 @@ public class Order {
             Currency currency,
             OrderState state,
             List<Shipment> shipments,
-            Instant createdAt
+            Instant createdAt,
+            Instant updatedAt
     ) {
 
         if (clientId == null || userId == null ) {
@@ -66,9 +69,61 @@ public class Order {
         this.deliveryAddress = address;
         calculateTotals();
         this.createdAt = createdAt;
-        this.updatedAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
+
+    public static Order place(
+            Long orderID,
+            Long clientId,
+            Long userId,
+            DeliveryAddress deliveryAddress,
+            List<Shipment> shipments,
+            Currency currency,
+            Clock clock
+            ){
+
+        if(shipments == null || shipments.isEmpty())
+            throw new IllegalArgumentException("an order requires at least one shipment");
+
+        Objects.requireNonNull(clock,"clock");
+
+        Instant now = clock.instant();
+
+        return new Order(
+                orderID,
+                clientId,
+                userId,
+                deliveryAddress,
+                currency,
+                OrderState.PENDING,
+                shipments,
+                now,
+                now
+        );
+
+
+    }
+
+    static Order rehydrate(
+            Long id,
+            Long clientId,
+            Long createdBy,
+            DeliveryAddress deliveryAddress,
+            Currency currency,
+            OrderState status,
+            List<Shipment> shipments,
+            Instant createdAt,
+            Instant updatedAt
+    ){
+        return new Order(
+                id, clientId, createdBy,
+                deliveryAddress, currency,
+                status,
+                shipments,
+                createdAt, updatedAt
+        );
+    }
 
     public void markAsPaid() {
         if (state != OrderState.PENDING) {
@@ -90,6 +145,7 @@ public class Order {
         double subtotal = shipments.stream()
                 .map(Shipment::subtotal)
                 .reduce(0.0, Double::sum);
+
 
         this.total = subtotal;
     }
