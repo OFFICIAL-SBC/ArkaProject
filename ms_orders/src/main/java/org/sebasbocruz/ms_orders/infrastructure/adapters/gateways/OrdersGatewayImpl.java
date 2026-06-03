@@ -11,8 +11,11 @@ import org.sebasbocruz.ms_orders.domain.context.orders.Gateways.OrdersGateway;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.Mappers.OrderMapper;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Cart.CartDetailEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Cart.CartEntity;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Inventory.WarehouseEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Order.OrderEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Product.ProductEntity;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.publics.AddressEntity;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.user.UserEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.repositories.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +38,8 @@ public class OrdersGatewayImpl implements OrdersGateway {
     private final InventoryRepository inventoryRepository;
     private final OrderStateRepository orderStateRepository;
     private final UserRepository userRepository;
+    private final AddressRepository addressRepository;
+    private final WarehouseRepository warehouseRepository;
 
     private final OrderMapper orderMapper;
 
@@ -79,6 +84,21 @@ public class OrdersGatewayImpl implements OrdersGateway {
                 .collectList()
                 .flatMap(details -> loadProductsByID(details)
                         .map(productMap -> assembleOrder(cart, details, productMap)));
+    }
+
+    private Mono<UserEntity> getUserEntity(Long userID){
+        return userRepository.findById(userID)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("User",userID.toString(),"Order")));
+    }
+
+    private Mono<AddressEntity> getAddressById(Long addressId){
+        return addressRepository.findById(addressId)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Address",addressId.toString(),"Order")));
+    }
+
+    private Mono<WarehouseEntity> getWarehouseByID(Long warehouseId){
+        return warehouseRepository.findById(warehouseId)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Warehouse",warehouseId.toString(),"Orders")));
     }
 
     private Mono<Map<Long, ProductEntity>> loadProductsByID(List<CartDetailEntity> details){
