@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -80,10 +81,15 @@ public class OrdersGatewayImpl implements OrdersGateway {
     }
 
     private Mono<OrderEntity> buildOrderEntity(CartEntity cart){
+
+        Mono<AddressEntity> userAddressEntity = getUserEntity(cart.getUserId())
+                .flatMap(user -> getAddressById(user.getAddressID()));
+
         return cartDetailRepository.findCartDetailEntitiesByCartID(cart.getCartId())
                 .collectList()
                 .flatMap(details -> loadProductsByID(details)
                         .map(productMap -> assembleOrder(cart, details, productMap)));
+
     }
 
     private Mono<UserEntity> getUserEntity(Long userID){
@@ -105,6 +111,13 @@ public class OrdersGatewayImpl implements OrdersGateway {
         return Flux.fromIterable(details)
                 .flatMap(detail -> productRepository.findById(detail.getProductID()))
                 .collectMap(productEntity -> productEntity.getProductID());
+    }
+
+    private Mono<Map<Long, ArrayList<ProductEntity>>> groupProductsByWarehouse(List<CartDetailEntity> details){
+        return Flux.fromIterable(details)
+                .flatMap(cartDetail -> inventoryRepository.findInventoryEntitiesByProductId(cartDetail.getProductID()))
+                .flatMap(detail -> productRepository.findById(detail.getProductID()))
+
     }
 
     private OrderEntity assembleOrder(CartEntity cart, List<CartDetailEntity> details,Map<Long, ProductEntity> productsByID){

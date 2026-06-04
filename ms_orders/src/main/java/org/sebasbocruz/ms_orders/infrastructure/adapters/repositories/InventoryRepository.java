@@ -4,6 +4,7 @@ import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Inv
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.data.repository.query.Param;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface InventoryRepository extends R2dbcRepository<InventoryEntity,Long> {
@@ -20,5 +21,8 @@ public interface InventoryRepository extends R2dbcRepository<InventoryEntity,Lon
             @Param("lat2") double lat2,
             @Param("lon2") double lon2
     );
+
+
+    Flux<InventoryEntity> findInventoryEntitiesByProductId(Long productId);
 
 }
