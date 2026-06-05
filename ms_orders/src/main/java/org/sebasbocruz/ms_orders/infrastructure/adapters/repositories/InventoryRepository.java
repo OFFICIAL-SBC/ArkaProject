@@ -23,6 +23,6 @@ public interface InventoryRepository extends R2dbcRepository<InventoryEntity,Lon
     );
 
 
-    Flux<InventoryEntity> findInventoryEntitiesByProductId(Long productId);
+    Flux<InventoryEntity> findInventoryEntitiesByProductId(Long productId );
 
 }

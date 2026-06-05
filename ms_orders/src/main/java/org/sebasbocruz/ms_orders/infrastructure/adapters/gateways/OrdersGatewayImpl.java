@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,13 +111,21 @@ public class OrdersGatewayImpl implements OrdersGateway {
     private Mono<Map<Long, ProductEntity>> loadProductsByID(List<CartDetailEntity> details){
         return Flux.fromIterable(details)
                 .flatMap(detail -> productRepository.findById(detail.getProductID()))
-                .collectMap(productEntity -> productEntity.getProductID());
+                .collectMap(ProductEntity::getProductID);
     }
 
-    private Mono<Map<Long, ArrayList<ProductEntity>>> groupProductsByWarehouse(List<CartDetailEntity> details){
+    private Mono<Map<Long, List<WarehouseEntity>>> groupWarehousesByProduct(List<CartDetailEntity> details){
         return Flux.fromIterable(details)
-                .flatMap(cartDetail -> inventoryRepository.findInventoryEntitiesByProductId(cartDetail.getProductID()))
-                .flatMap(detail -> productRepository.findById(detail.getProductID()))
+                .flatMap(cartDetail ->
+                        inventoryRepository.findInventoryEntitiesByProductId(cartDetail.getProductID())
+                                .flatMap(inventoryEntity -> warehouseRepository.findById(inventoryEntity.getWarehouseId()))
+                                .collectList()
+                )
+                .zipWith(Flux.fromIterable(details))
+                .collectMap(result -> result.getT2().getProductID(), Tuple2::getT1);
+    }
+
+    private Mono<Map<Long, WarehouseEntity>> selectLowestDistance(){
 
     }
 
