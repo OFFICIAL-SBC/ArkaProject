@@ -25,6 +25,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -125,7 +126,24 @@ public class OrdersGatewayImpl implements OrdersGateway {
                 .collectMap(result -> result.getT2().getProductID(), Tuple2::getT1);
     }
 
-    private Mono<Map<Long, WarehouseEntity>> selectLowestDistance(){
+    private Mono<Map<Long, WarehouseEntity>> selectWarehouseWithLowestDistanceToDestine(Map<Long, List<WarehouseEntity>>  groupedWarehousesByProduct, AddressEntity userAddress){
+
+        Flux.fromIterable(groupedWarehousesByProduct.entrySet())
+                .flatMap(entry -> {
+                    return Flux.fromIterable(entry.getValue())
+                            .flatMap(warehouseEntity -> {
+                                return addressRepository.findById(warehouseEntity.getAddressId())
+                                        .flatMap(addressEntity -> {
+                                            return inventoryRepository.distanceBetween(
+                                                    addressEntity.getLatitude(), addressEntity.getLongitude(),
+                                                    userAddress.getLatitude(), userAddress.getLongitude()
+                                            ).map( distance -> {
+                                                return new T
+                                            })
+                                        })
+                            }
+                })
+
 
     }
 
