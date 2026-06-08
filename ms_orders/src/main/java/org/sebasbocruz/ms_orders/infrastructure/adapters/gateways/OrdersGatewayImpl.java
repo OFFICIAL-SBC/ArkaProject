@@ -24,10 +24,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -84,15 +81,25 @@ public class OrdersGatewayImpl implements OrdersGateway {
 
     private Mono<OrderEntity> buildOrderEntity(CartEntity cart){
 
-        Mono<AddressEntity> userAddressEntity = getUserEntity(cart.getUserId())
-                .flatMap(user -> getAddressById(user.getAddressID()));
-
         return cartDetailRepository.findCartDetailEntitiesByCartID(cart.getCartId())
                 .collectList()
-                .flatMap(details -> loadProductsByID(details)
-                        .map(productMap -> assembleOrder(cart, details, productMap)));
+                .flatMap(details -> {
+                    return groupWarehousesByProduct(details)
+                            .flatMap(productWarehouseMap ->
+                                    getUserEntity(cart.getUserId())
+                                            .flatMap(user -> addressRepository.findById(user.getAddressID()))
+                                            .flatMap(userAddress -> selectWarehouseWithLowestDistanceToDestine(productWarehouseMap, userAddress))
+                            )
+                            .flatMap(ProductWarehouseMap ->
+                                    loadProductsByID(ProductWarehouseMap.keySet())
+                                            .flatMap( productList -> )
+                            )
+                });
 
     }
+
+//    loadProductsByID(details)
+//                        .map(productMap -> assembleOrder(cart, details, productMap))
 
     private Mono<UserEntity> getUserEntity(Long userID){
         return userRepository.findById(userID)
@@ -109,9 +116,9 @@ public class OrdersGatewayImpl implements OrdersGateway {
                 .switchIfEmpty(Mono.error(new EntityNotFoundException("Warehouse",warehouseId.toString(),"Orders")));
     }
 
-    private Mono<Map<Long, ProductEntity>> loadProductsByID(List<CartDetailEntity> details){
-        return Flux.fromIterable(details)
-                .flatMap(detail -> productRepository.findById(detail.getProductID()))
+    private Mono<Map<Long, ProductEntity>> loadProductsByID(Set<Long> productIds){
+        return Flux.fromIterable(productIds)
+                .flatMap(productRepository::findById)
                 .collectMap(ProductEntity::getProductID);
     }
 
@@ -119,33 +126,43 @@ public class OrdersGatewayImpl implements OrdersGateway {
         return Flux.fromIterable(details)
                 .flatMap(cartDetail ->
                         inventoryRepository.findInventoryEntitiesByProductId(cartDetail.getProductID())
-                                .flatMap(inventoryEntity -> warehouseRepository.findById(inventoryEntity.getWarehouseId()))
+                                .flatMap(inventoryEntity -> getWarehouseByID(inventoryEntity.getWarehouseId()))
                                 .collectList()
                 )
                 .zipWith(Flux.fromIterable(details))
                 .collectMap(result -> result.getT2().getProductID(), Tuple2::getT1);
     }
 
-    private Mono<Map<Long, WarehouseEntity>> selectWarehouseWithLowestDistanceToDestine(Map<Long, List<WarehouseEntity>>  groupedWarehousesByProduct, AddressEntity userAddress){
+    private Mono<Map<Long, WarehouseEntity>> selectWarehouseWithLowestDistanceToDestine(Map<Long, List<WarehouseEntity>> groupedWarehousesByProduct, AddressEntity userAddress){
 
-        Flux.fromIterable(groupedWarehousesByProduct.entrySet())
+        return Flux.fromIterable(groupedWarehousesByProduct.entrySet())
                 .flatMap(entry -> {
                     return Flux.fromIterable(entry.getValue())
                             .flatMap(warehouseEntity -> {
-                                return addressRepository.findById(warehouseEntity.getAddressId())
+                                return getAddressById(warehouseEntity.getAddressId())
                                         .flatMap(addressEntity -> {
                                             return inventoryRepository.distanceBetween(
                                                     addressEntity.getLatitude(), addressEntity.getLongitude(),
                                                     userAddress.getLatitude(), userAddress.getLongitude()
                                             ).map( distance -> {
-                                                return new T
-                                            })
-                                        })
-                            }
+                                                return new DistancePerWarehouse(distance, warehouseEntity);
+                                            });
+                                        });
+                            })
+                            .doOnNext(result -> System.out.println(result.distance().toString() + result.entity().getWarehouseId().toString()))
+                            .reduce((a,b) -> a.distance() <= b.distance ? a : b)
+                            .map(closest -> new ProductIdAndWarehouse(entry.getKey(), closest.entity()))
+                            .doOnNext(System.out::println);
+
                 })
-
-
+                .collectMap(
+                        ProductIdAndWarehouse::productId,
+                        ProductIdAndWarehouse::entity
+                );
     }
+
+    record DistancePerWarehouse(Double distance, WarehouseEntity entity){}
+    record ProductIdAndWarehouse(Long productId, WarehouseEntity entity){}
 
     private OrderEntity assembleOrder(CartEntity cart, List<CartDetailEntity> details,Map<Long, ProductEntity> productsByID){
         double totalPrice = details.stream().mapToDouble(detail -> detail.getAmount()*productsByID.get(detail.getProductID()).getPrice()*(1-productsByID.get(detail.getProductID()).getDiscount()/100))
@@ -168,3 +185,6 @@ public class OrdersGatewayImpl implements OrdersGateway {
 
     }
 }
+
+
+
