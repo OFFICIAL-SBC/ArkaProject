@@ -6,6 +6,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 
+import java.time.Clock;
+
 @Configuration
 @ComponentScan(
       basePackages = {
@@ -20,5 +22,10 @@ public class AppConfig {
     @Bean
     public WebProperties.Resources resources() {
         return new WebProperties.Resources();
+    }
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemUTC();
     }
 }

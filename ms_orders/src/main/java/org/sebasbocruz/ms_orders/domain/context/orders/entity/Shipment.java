@@ -1,5 +1,6 @@
 package org.sebasbocruz.ms_orders.domain.context.orders.entity;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.sebasbocruz.ms_orders.domain.commons.errors.InvalidStateTransitionException;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@Builder(toBuilder = true)
 public class Shipment {
     private final Long shipmentId;
     private final Long warehouseId;

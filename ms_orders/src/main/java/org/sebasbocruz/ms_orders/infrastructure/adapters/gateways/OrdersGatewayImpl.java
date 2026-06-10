@@ -1,190 +1,163 @@
 package org.sebasbocruz.ms_orders.infrastructure.adapters.gateways;
 
 import lombok.RequiredArgsConstructor;
-import org.sebasbocruz.ms_orders.domain.commons.errors.DataAccessException;
 import org.sebasbocruz.ms_orders.domain.commons.errors.EntityNotFoundException;
-import org.sebasbocruz.ms_orders.domain.commons.errors.InvalidStateTransitionException;
-import org.sebasbocruz.ms_orders.domain.commons.states.Cart.CartState;
-import org.sebasbocruz.ms_orders.domain.commons.states.Order.OrderState;
 import org.sebasbocruz.ms_orders.domain.context.orders.Aggregate.Order;
+import org.sebasbocruz.ms_orders.domain.context.orders.Gateways.OrderProvisioningGateway;
 import org.sebasbocruz.ms_orders.domain.context.orders.Gateways.OrdersGateway;
+import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.Coordinates;
+import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.DeliveryAddress;
+import org.sebasbocruz.ms_orders.domain.context.orders.ValueObjects.WarehouseOrigin;
+import org.sebasbocruz.ms_orders.domain.context.orders.readmodels.CartLine;
+import org.sebasbocruz.ms_orders.domain.context.orders.readmodels.CartSummary;
+import org.sebasbocruz.ms_orders.domain.context.orders.readmodels.ProductSnapshot;
+import org.sebasbocruz.ms_orders.domain.context.orders.readmodels.ProductWarehouseCandidate;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.Mappers.OrderMapper;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Cart.CartDetailEntity;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Cart.CartEntity;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Inventory.WarehouseEntity;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Order.OrderEntity;
-import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Product.ProductEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.publics.AddressEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.user.UserEntity;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Inventory.WarehouseEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.repositories.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.Set;
 
+/**
+ * Single adapter that implements both order ports. Pure I/O: it queries the
+ * repositories and persists the aggregate. No business decisions live here —
+ * those moved to the use case and the domain services.
+ */
 @RequiredArgsConstructor
 @Service
-public class OrdersGatewayImpl implements OrdersGateway {
+public class OrdersGatewayImpl implements OrdersGateway, OrderProvisioningGateway {
 
-    private Logger logger = LoggerFactory.getLogger(OrdersGatewayImpl.class);
     private final CartRepository cartRepository;
     private final CartDetailRepository cartDetailRepository;
     private final OrderRepository orderRepository;
+    private final OrderDetailRepository orderDetailRepository;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
-    private final OrderStateRepository orderStateRepository;
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final WarehouseRepository warehouseRepository;
 
     private final OrderMapper orderMapper;
 
-    private static final int CART_STATE_CONVERTED = 5;
-    private static final long ORDER_STATE_PENDING = 1L;
+    // ---------------------------------------------------------------------
+    // Read port (OrderProvisioningGateway)
+    // ---------------------------------------------------------------------
 
     @Override
-    public Mono<Order> createNewOrder(Long cartID) {
-        return findCartOrFail(cartID)
-                .flatMap(this::ensureCartStateIsConverted)
-                .flatMap(this::buildOrderEntity)
-                .flatMap(orderRepository::save)
-                .flatMap(this::buildDomainOrderSavedWithStatus)
-                .onErrorMap(
-                        ex -> !(ex instanceof EntityNotFoundException) && !(ex instanceof InvalidStateTransitionException),
-                        ex -> new DataAccessException("CREATE","Order",ex)
-                );
-    }
-
-    private Mono<CartEntity> findCartOrFail(Long cartId){
+    public Mono<CartSummary> findCart(Long cartId) {
         return cartRepository.findById(cartId)
-                .switchIfEmpty(Mono.error(new EntityNotFoundException("Cart",cartId.toString(),"Order")));
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Cart", cartId.toString(), "Order")))
+                .map(cart -> new CartSummary(
+                        cart.getCartId(),
+                        cart.getUserId(),
+                        cart.getCartStateID(),
+                        cart.getCurrencyID()
+                ));
     }
 
-    private Mono<CartEntity> ensureCartStateIsConverted(CartEntity cart){
-        if(cart.getCartStateID() == CART_STATE_CONVERTED){
-            return Mono.just(cart);
-        }
+    @Override
+    public Flux<CartLine> findCartLines(Long cartId) {
+        return cartDetailRepository.findCartDetailEntitiesByCartID(cartId)
+                .map(detail -> new CartLine(detail.getProductID(), detail.getAmount()));
+    }
 
-        return Mono.error(
-                new InvalidStateTransitionException(
-                        "Cart",
-                        CartState.CART_STATES.get(cart.getCartStateID().intValue()),
-                        "Order",
-                        "Order"
+    @Override
+    public Mono<Long> findClientId(Long userId) {
+        return getUserEntity(userId).map(UserEntity::getClientID);
+    }
+
+    @Override
+    public Mono<DeliveryAddress> findDeliveryAddress(Long userId) {
+        return getUserEntity(userId)
+                .flatMap(user -> getAddressById(user.getAddressID()))
+                .map(this::toDeliveryAddress);
+    }
+
+    @Override
+    public Flux<ProductSnapshot> findProductSnapshots(Set<Long> productIds) {
+        return Flux.fromIterable(productIds)
+                .flatMap(productRepository::findById)
+                .map(product -> new ProductSnapshot(
+                        product.getProductID(),
+                        product.getPrice(),
+                        product.getDiscount()
+                ));
+    }
+
+    @Override
+    public Flux<ProductWarehouseCandidate> findWarehouseCandidates(Set<Long> productIds, Coordinates destination) {
+        double destLat = destination.latitude().doubleValue();
+        double destLon = destination.longitude().doubleValue();
+
+        return Flux.fromIterable(productIds)
+                .flatMap(productId -> inventoryRepository.findInventoryEntitiesByProductId(productId)
+                        .flatMap(inventory -> getWarehouseByID(inventory.getWarehouseId())
+                                .flatMap(warehouse -> getAddressById(warehouse.getAddressId())
+                                        .flatMap(warehouseAddress -> inventoryRepository.distanceBetween(
+                                                        warehouseAddress.getLatitude(), warehouseAddress.getLongitude(),
+                                                        destLat, destLon)
+                                                .map(distance -> new ProductWarehouseCandidate(
+                                                        productId,
+                                                        warehouse.getWarehouseId(),
+                                                        toOrigin(warehouse),
+                                                        distance
+                                                ))))));
+    }
+
+    // ---------------------------------------------------------------------
+    // Write port (OrdersGateway)
+    // ---------------------------------------------------------------------
+
+    @Override
+    public Mono<Order> save(Order order, Long currencyId) {
+        return orderRepository.save(orderMapper.toEntity(order, currencyId))
+                .flatMap(savedHeader -> {
+                    order.setOrderId(savedHeader.getOrder_id());
+                    return orderDetailRepository
+                            .saveAll(orderMapper.toDetailEntities(savedHeader.getOrder_id(), order))
+                            .then(Mono.just(order));
+                });
+    }
+
+    // ---------------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------------
+
+    private Mono<UserEntity> getUserEntity(Long userId) {
+        return userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("User", userId.toString(), "Order")));
+    }
+
+    private Mono<AddressEntity> getAddressById(Long addressId) {
+        return addressRepository.findById(addressId)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Address", addressId.toString(), "Order")));
+    }
+
+    private Mono<WarehouseEntity> getWarehouseByID(Long warehouseId) {
+        return warehouseRepository.findById(warehouseId)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Warehouse", warehouseId.toString(), "Order")));
+    }
+
+    private DeliveryAddress toDeliveryAddress(AddressEntity address) {
+        return new DeliveryAddress(
+                address.getAddress(),
+                null, // TODO: resolve city name from city_id
+                null, // TODO: resolve country name from country_id
+                new Coordinates(
+                        BigDecimal.valueOf(address.getLatitude()),
+                        BigDecimal.valueOf(address.getLongitude())
                 )
         );
     }
 
-    private Mono<OrderEntity> buildOrderEntity(CartEntity cart){
-
-        return cartDetailRepository.findCartDetailEntitiesByCartID(cart.getCartId())
-                .collectList()
-                .flatMap(details -> {
-                    return groupWarehousesByProduct(details)
-                            .flatMap(productWarehouseMap ->
-                                    getUserEntity(cart.getUserId())
-                                            .flatMap(user -> addressRepository.findById(user.getAddressID()))
-                                            .flatMap(userAddress -> selectWarehouseWithLowestDistanceToDestine(productWarehouseMap, userAddress))
-                            )
-                            .flatMap(ProductWarehouseMap ->
-                                    loadProductsByID(ProductWarehouseMap.keySet())
-                                            .flatMap( productList -> )
-                            )
-                });
-
-    }
-
-//    loadProductsByID(details)
-//                        .map(productMap -> assembleOrder(cart, details, productMap))
-
-    private Mono<UserEntity> getUserEntity(Long userID){
-        return userRepository.findById(userID)
-                .switchIfEmpty(Mono.error(new EntityNotFoundException("User",userID.toString(),"Order")));
-    }
-
-    private Mono<AddressEntity> getAddressById(Long addressId){
-        return addressRepository.findById(addressId)
-                .switchIfEmpty(Mono.error(new EntityNotFoundException("Address",addressId.toString(),"Order")));
-    }
-
-    private Mono<WarehouseEntity> getWarehouseByID(Long warehouseId){
-        return warehouseRepository.findById(warehouseId)
-                .switchIfEmpty(Mono.error(new EntityNotFoundException("Warehouse",warehouseId.toString(),"Orders")));
-    }
-
-    private Mono<Map<Long, ProductEntity>> loadProductsByID(Set<Long> productIds){
-        return Flux.fromIterable(productIds)
-                .flatMap(productRepository::findById)
-                .collectMap(ProductEntity::getProductID);
-    }
-
-    private Mono<Map<Long, List<WarehouseEntity>>> groupWarehousesByProduct(List<CartDetailEntity> details){
-        return Flux.fromIterable(details)
-                .flatMap(cartDetail ->
-                        inventoryRepository.findInventoryEntitiesByProductId(cartDetail.getProductID())
-                                .flatMap(inventoryEntity -> getWarehouseByID(inventoryEntity.getWarehouseId()))
-                                .collectList()
-                )
-                .zipWith(Flux.fromIterable(details))
-                .collectMap(result -> result.getT2().getProductID(), Tuple2::getT1);
-    }
-
-    private Mono<Map<Long, WarehouseEntity>> selectWarehouseWithLowestDistanceToDestine(Map<Long, List<WarehouseEntity>> groupedWarehousesByProduct, AddressEntity userAddress){
-
-        return Flux.fromIterable(groupedWarehousesByProduct.entrySet())
-                .flatMap(entry -> {
-                    return Flux.fromIterable(entry.getValue())
-                            .flatMap(warehouseEntity -> {
-                                return getAddressById(warehouseEntity.getAddressId())
-                                        .flatMap(addressEntity -> {
-                                            return inventoryRepository.distanceBetween(
-                                                    addressEntity.getLatitude(), addressEntity.getLongitude(),
-                                                    userAddress.getLatitude(), userAddress.getLongitude()
-                                            ).map( distance -> {
-                                                return new DistancePerWarehouse(distance, warehouseEntity);
-                                            });
-                                        });
-                            })
-                            .doOnNext(result -> System.out.println(result.distance().toString() + result.entity().getWarehouseId().toString()))
-                            .reduce((a,b) -> a.distance() <= b.distance ? a : b)
-                            .map(closest -> new ProductIdAndWarehouse(entry.getKey(), closest.entity()))
-                            .doOnNext(System.out::println);
-
-                })
-                .collectMap(
-                        ProductIdAndWarehouse::productId,
-                        ProductIdAndWarehouse::entity
-                );
-    }
-
-    record DistancePerWarehouse(Double distance, WarehouseEntity entity){}
-    record ProductIdAndWarehouse(Long productId, WarehouseEntity entity){}
-
-    private OrderEntity assembleOrder(CartEntity cart, List<CartDetailEntity> details,Map<Long, ProductEntity> productsByID){
-        double totalPrice = details.stream().mapToDouble(detail -> detail.getAmount()*productsByID.get(detail.getProductID()).getPrice()*(1-productsByID.get(detail.getProductID()).getDiscount()/100))
-                .sum();
-
-        return OrderEntity.builder()
-                .client_id(cart.getUserId())
-                .user_id(cart.getUserId())
-                .currencyId(cart.getCurrencyID())
-                .orderStateId(ORDER_STATE_PENDING)
-                .totalPrice(totalPrice)
-                .build();
-
-    }
-
-    private Mono<Order> buildDomainOrderSavedWithStatus(OrderEntity orderSaved){
-
-        return orderStateRepository.findById(orderSaved.getOrderStateId())
-                .map(orderStateEntity -> orderMapper.fromInfrastructureToDomain(orderSaved,OrderState.valueOf(orderStateEntity.getOrderState())));
-
+    private WarehouseOrigin toOrigin(WarehouseEntity warehouse) {
+        // TODO: resolve city/country names; only their ids exist on the address today.
+        return new WarehouseOrigin(warehouse.getName(), null, null);
     }
 }
-
-
-
