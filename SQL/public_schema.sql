@@ -68,4 +68,4 @@ VALUES
 (5, 2, '654 Ocean Drive',            25.76168100, -80.19178800);
 
 SELECT * FROM public.address;
-SELECT * FROM users.users;
+SELECT * FROM public.city;

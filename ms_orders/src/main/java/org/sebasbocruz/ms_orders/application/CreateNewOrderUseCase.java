@@ -51,6 +51,8 @@ public class CreateNewOrderUseCase {
     }
 
     private Mono<CartSummary> ensureCartStateIsConverted(CartSummary cart) {
+        // ! This is a business logic that is why It goes in the use case
+
         if (cart.cartStateId() != null && cart.cartStateId() == CART_STATE_CONVERTED) {
             return Mono.just(cart);
         }
@@ -63,11 +65,15 @@ public class CreateNewOrderUseCase {
     }
 
     private Mono<Order> buildAndSaveOrder(CartSummary cart) {
+
         return provisioning.findCartLines(cart.cartId()).collectList()
                 .flatMap(lines -> {
+
+                    //  * Here we are getting all the productIds without duplicates
                     Set<Long> productIds = lines.stream()
                             .map(CartLine::productId)
                             .collect(Collectors.toSet());
+
                     Map<Long, CartLine> linesByProduct = lines.stream()
                             .collect(Collectors.toMap(CartLine::productId, Function.identity()));
 

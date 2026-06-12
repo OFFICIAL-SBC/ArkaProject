@@ -13,7 +13,10 @@ import org.sebasbocruz.ms_orders.domain.context.orders.readmodels.CartSummary;
 import org.sebasbocruz.ms_orders.domain.context.orders.readmodels.ProductSnapshot;
 import org.sebasbocruz.ms_orders.domain.context.orders.readmodels.ProductWarehouseCandidate;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.Mappers.OrderMapper;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Cart.CartEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.publics.AddressEntity;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.publics.CityEntity;
+import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.publics.CountryEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.user.UserEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.Inventory.WarehouseEntity;
 import org.sebasbocruz.ms_orders.infrastructure.adapters.repositories.*;
@@ -42,6 +45,8 @@ public class OrdersGatewayImpl implements OrdersGateway, OrderProvisioningGatewa
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final WarehouseRepository warehouseRepository;
+    private final CityRepository cityRepository;
+    private final CountryRepository countryRepository;
 
     private final OrderMapper orderMapper;
 
@@ -75,8 +80,7 @@ public class OrdersGatewayImpl implements OrdersGateway, OrderProvisioningGatewa
     @Override
     public Mono<DeliveryAddress> findDeliveryAddress(Long userId) {
         return getUserEntity(userId)
-                .flatMap(user -> getAddressById(user.getAddressID()))
-                .map(this::toDeliveryAddress);
+                .flatMap(this::buildDeliveryAddressFromUser);
     }
 
     @Override
@@ -144,11 +148,38 @@ public class OrdersGatewayImpl implements OrdersGateway, OrderProvisioningGatewa
                 .switchIfEmpty(Mono.error(new EntityNotFoundException("Warehouse", warehouseId.toString(), "Order")));
     }
 
-    private DeliveryAddress toDeliveryAddress(AddressEntity address) {
+    private Mono<CityEntity> getCityByID(Long cityId) {
+        return cityRepository.findById(cityId)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("City", cityId.toString(), "Order")));
+    }
+
+    private Mono<CountryEntity> getCountryByID(Long countryId) {
+        return countryRepository.findById(countryId)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Country", countryId.toString(), "Order")));
+    }
+
+    private Mono<DeliveryAddress> buildDeliveryAddressFromUser(UserEntity user){
+        return getAddressById(user.getAddressID())
+                .flatMap(this::buildDeliveryAddressFromAddress)
+    }
+
+    private Mono<DeliveryAddress> buildDeliveryAddressFromAddress(AddressEntity address){
+        return getCityByID(address.getCityId())
+                .flatMap(cityEntity -> buildDeliveryAddress(address, cityEntity))
+    }
+
+    private Mono<DeliveryAddress> buildDeliveryAddress(AddressEntity address, CityEntity city){
+        return getCountryByID(city.getCountryId())
+                .map(countryEntity -> toDeliveryAddress(address, city, countryEntity));
+    }
+
+    private DeliveryAddress toDeliveryAddress(AddressEntity address, CityEntity city, CountryEntity country) {
+
+        // ! The DeliveryAddress is part of the Domain, the use case only sees the domain Entities, ObjectValues and Aggregates
         return new DeliveryAddress(
                 address.getAddress(),
-                null, // TODO: resolve city name from city_id
-                null, // TODO: resolve country name from country_id
+                city.getCityName(),
+                country.getCountryName(),
                 new Coordinates(
                         BigDecimal.valueOf(address.getLatitude()),
                         BigDecimal.valueOf(address.getLongitude())

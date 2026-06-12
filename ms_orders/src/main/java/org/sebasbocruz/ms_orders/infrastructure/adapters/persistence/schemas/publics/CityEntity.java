@@ -1,0 +1,27 @@
+package org.sebasbocruz.ms_orders.infrastructure.adapters.persistence.schemas.publics;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@Builder
+@Table(schema = "public",name = "city")
+public class CityEntity {
+    @Id
+    @Column("city_id")
+    private Long cityId;
+
+    @Column("country_id")
+    private Long countryId;
+
+    @Column("name")
+    private String cityName;
+
+}
