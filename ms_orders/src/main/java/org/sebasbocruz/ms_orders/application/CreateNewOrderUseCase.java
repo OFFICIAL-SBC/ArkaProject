@@ -78,16 +78,17 @@ public class CreateNewOrderUseCase {
                             .collect(Collectors.toMap(CartLine::productId, Function.identity()));
 
                     return Mono.zip(
+                            // TODO: Why do we need to get the clientID?
                             provisioning.findClientId(cart.userId()),
                             provisioning.findDeliveryAddress(cart.userId()),
                             provisioning.findProductSnapshots(productIds)
                                     .collectMap(ProductSnapshot::productId)
                     ).flatMap(data -> {
                         Long clientId = data.getT1();
-                        DeliveryAddress address = data.getT2();
+                        DeliveryAddress userAddress = data.getT2();
                         Map<Long, ProductSnapshot> snapshots = data.getT3();
 
-                        return provisioning.findWarehouseCandidates(productIds, address.coordinates())
+                        return provisioning.findWarehouseCandidates(productIds, userAddress.coordinates())
                                 .collectList()
                                 .map(WarehouseSelectionService::pickClosestPerProduct)
                                 .map(selection -> ShipmentFactory.build(selection, linesByProduct, snapshots, clock))
@@ -95,7 +96,7 @@ public class CreateNewOrderUseCase {
                                         null,
                                         clientId,
                                         cart.userId(),
-                                        address,
+                                        userAddress,
                                         shipments,
                                         // TODO: resolve a real ISO currency code from currency_id once a source exists.
                                         new Currency(String.valueOf(cart.currencyId())),

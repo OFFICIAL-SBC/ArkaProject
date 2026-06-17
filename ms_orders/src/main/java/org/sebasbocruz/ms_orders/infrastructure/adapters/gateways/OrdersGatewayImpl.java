@@ -103,15 +103,23 @@ public class OrdersGatewayImpl implements OrdersGateway, OrderProvisioningGatewa
                 .flatMap(productId -> inventoryRepository.findInventoryEntitiesByProductId(productId)
                         .flatMap(inventory -> getWarehouseByID(inventory.getWarehouseId())
                                 .flatMap(warehouse -> getAddressById(warehouse.getAddressId())
-                                        .flatMap(warehouseAddress -> inventoryRepository.distanceBetween(
-                                                        warehouseAddress.getLatitude(), warehouseAddress.getLongitude(),
-                                                        destLat, destLon)
-                                                .map(distance -> new ProductWarehouseCandidate(
-                                                        productId,
-                                                        warehouse.getWarehouseId(),
-                                                        toOrigin(warehouse),
-                                                        distance
-                                                ))))));
+                                        .flatMap(warehouseAddress -> Mono.zip(
+                                                           inventoryRepository.distanceBetween(
+                                                                warehouseAddress.getLatitude(), warehouseAddress.getLongitude(),
+                                                                destLat, destLon),
+                                                           cityRepository.findById(warehouseAddress.getCityId()),
+                                                            countryRepository.findById(warehouseAddress.getCountryId())
+                                                        )
+                                                        .map(distanceCityCountryTuple -> new ProductWarehouseCandidate(
+                                                                productId,
+                                                                warehouse.getWarehouseId(),
+                                                                toOrigin(warehouse, distanceCityCountryTuple.getT2(), distanceCityCountryTuple.getT3()),
+                                                                distanceCityCountryTuple.getT1()
+                                                        ))
+                                            )
+                                )
+                        )
+                );
     }
 
     // ---------------------------------------------------------------------
@@ -160,12 +168,12 @@ public class OrdersGatewayImpl implements OrdersGateway, OrderProvisioningGatewa
 
     private Mono<DeliveryAddress> buildDeliveryAddressFromUser(UserEntity user){
         return getAddressById(user.getAddressID())
-                .flatMap(this::buildDeliveryAddressFromAddress)
+                .flatMap(this::buildDeliveryAddressFromAddress);
     }
 
     private Mono<DeliveryAddress> buildDeliveryAddressFromAddress(AddressEntity address){
         return getCityByID(address.getCityId())
-                .flatMap(cityEntity -> buildDeliveryAddress(address, cityEntity))
+                .flatMap(cityEntity -> buildDeliveryAddress(address, cityEntity));
     }
 
     private Mono<DeliveryAddress> buildDeliveryAddress(AddressEntity address, CityEntity city){
@@ -187,8 +195,7 @@ public class OrdersGatewayImpl implements OrdersGateway, OrderProvisioningGatewa
         );
     }
 
-    private WarehouseOrigin toOrigin(WarehouseEntity warehouse) {
-        // TODO: resolve city/country names; only their ids exist on the address today.
-        return new WarehouseOrigin(warehouse.getName(), null, null);
+    private WarehouseOrigin toOrigin(WarehouseEntity warehouse, CityEntity city, CountryEntity country) {
+        return new WarehouseOrigin(warehouse.getName(), city.getCityName(), country.getCountryName());
     }
 }
